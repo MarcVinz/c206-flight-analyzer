@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+@theme {
+  /* Africa Bushpilot Theme - Forest Green & Gold */
+  --color-background: hsl(152 30% 10%);
+  --color-foreground: hsl(45 30% 95%);
+
+  --color-card: hsl(152 25% 14%);
+  --color-card-foreground: hsl(45 30% 95%);
+
+  --color-popover: hsl(152 25% 14%);
+  --color-popover-foreground: hsl(45 30% 95%);
+
+  --color-primary: hsl(37 50% 53%);
+  --color-primary-foreground: hsl(152 30% 10%);
+
+  --color-secondary: hsl(152 20% 18%);
+  --color-secondary-foreground: hsl(45 30% 95%);
+
+  --color-muted: hsl(152 15% 20%);
+  --color-muted-foreground: hsl(45 15% 60%);
+
+  --color-accent: hsl(152 25% 22%);
+  --color-accent-foreground: hsl(45 30% 95%);
+
+  --color-destructive: hsl(0 70% 50%);
+  --color-destructive-foreground: hsl(45 30% 95%);
+
+  --color-border: hsl(152 20% 25%);
+  --color-input: hsl(152 20% 25%);
+  --color-ring: hsl(37 50% 53%);
+
+  --radius: 0.5rem;
+
+  /* Aviation colors - Safari theme */
+  --color-aviation-cyan: hsl(37 50% 53%);
+  --color-aviation-green: hsl(152 50% 40%);
+  --color-aviation-amber: hsl(37 70% 50%);
+  --color-aviation-red: hsl(0 70% 50%);
+  --color-aviation-blue: hsl(200 60% 50%);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Number input spinners - make them visible on dark theme */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    opacity: 1;
+    filter: invert(0.8);
+  }
+
+  /* Time input icons */
+  input[type="time"]::-webkit-calendar-picker-indicator,
+  input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(0.8);
+    cursor: pointer;
+  }
+
+  /* Select dropdown arrows */
+  select {
+    color-scheme: dark;
+  }
+}
+
+@layer components {
+  .aviation-card {
+    background-color: var(--color-card);
+    border-radius: var(--radius);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+  }
+
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--color-border), transparent);
+  }
+
+  .status-ok {
+    color: var(--color-aviation-green);
+  }
+
+  .status-warning {
+    color: var(--color-aviation-amber);
+  }
+
+  .status-danger {
+    color: var(--color-aviation-red);
+  }
+
+  .input-glow {
+    &:focus-visible {
+      ring: 2px;
+      ring-color: color-mix(in srgb, var(--color-primary) 50%, transparent);
+    }
+  }
+}
+
+/* Print styles */
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .aviation-card {
+    break-inside: avoid;
+    border: 1px solid #ccc !important;
+    background: white !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
