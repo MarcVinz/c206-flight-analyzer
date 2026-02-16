@@ -1,8 +1,17 @@
-import { MapPin, Navigation, Clock, Fuel as FuelIcon } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { MapPin, Navigation, Clock, Fuel as FuelIcon, Plane } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import type { FuelData } from '@/types/aircraft'
 import { formatTime } from '@/lib/utils'
+import { aerodromes, getAerodromeByIcao, calculateDistance, type Aerodrome } from '@/data/aerodromes'
 
 interface DestinationPanelProps {
   tripDistance: number
@@ -19,17 +28,122 @@ export function DestinationPanel({
   fuelData,
   fuelBurnRate,
 }: DestinationPanelProps) {
+  const [fromIcao, setFromIcao] = useState<string>('')
+  const [toIcao, setToIcao] = useState<string>('')
+  const [manualDistance, setManualDistance] = useState<string>('')
+
+  // Calculate distance when both aerodromes are selected
+  useEffect(() => {
+    if (fromIcao && toIcao) {
+      const from = getAerodromeByIcao(fromIcao)
+      const to = getAerodromeByIcao(toIcao)
+      if (from && to) {
+        const distance = calculateDistance(from, to)
+        setTripDistance(distance)
+        setManualDistance(String(distance))
+      }
+    }
+  }, [fromIcao, toIcao, setTripDistance])
+
+  // Handle manual distance input
+  const handleManualDistanceChange = (value: string) => {
+    setManualDistance(value)
+    const parsed = parseInt(value)
+    if (!isNaN(parsed) && parsed >= 0) {
+      setTripDistance(parsed)
+    } else if (value === '') {
+      setTripDistance(0)
+    }
+  }
+
+  // Get selected aerodrome details
+  const fromAerodrome = fromIcao ? getAerodromeByIcao(fromIcao) : undefined
+  const toAerodrome = toIcao ? getAerodromeByIcao(toIcao) : undefined
+
   // Assume 100 kt block speed
   const blockSpeed = 100
   const tripTimeMinutes = tripDistance > 0 ? (tripDistance / blockSpeed) * 60 : 0
   const fuelRemaining = fuelData.weight - tripFuelBurn
   const isInsufficientFuel = fuelRemaining < 0
 
+  // Group aerodromes by country
+  const groupedAerodromes = {
+    ZA: aerodromes.filter(a => a.country === 'ZA'),
+    NA: aerodromes.filter(a => a.country === 'NA'),
+    BW: aerodromes.filter(a => a.country === 'BW'),
+  }
+
   return (
     <div className="aviation-card p-5">
       <div className="section-header flex items-center gap-2 mb-4">
         <MapPin className="h-5 w-5 text-primary" />
         <h3 className="text-lg font-semibold">Trip Planning</h3>
+      </div>
+
+      {/* Route ICAO selection */}
+      <div className="grid grid-cols-2 gap-3 mb-4">
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1 block">From (ICAO)</Label>
+          <Select value={fromIcao} onValueChange={setFromIcao}>
+            <SelectTrigger className="font-mono">
+              <SelectValue placeholder="Select departure" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[300px]">
+              <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted">South Africa</div>
+              {groupedAerodromes.ZA.map((a) => (
+                <SelectItem key={a.icao} value={a.icao} className="font-mono text-sm">
+                  {a.icao} - {a.name}
+                </SelectItem>
+              ))}
+              <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted">Namibia</div>
+              {groupedAerodromes.NA.map((a) => (
+                <SelectItem key={a.icao} value={a.icao} className="font-mono text-sm">
+                  {a.icao} - {a.name}
+                </SelectItem>
+              ))}
+              <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted">Botswana</div>
+              {groupedAerodromes.BW.map((a) => (
+                <SelectItem key={a.icao} value={a.icao} className="font-mono text-sm">
+                  {a.icao} - {a.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {fromAerodrome && (
+            <p className="text-xs text-muted-foreground mt-1">Elev: {fromAerodrome.elevation} ft</p>
+          )}
+        </div>
+        <div>
+          <Label className="text-xs text-muted-foreground mb-1 block">To (ICAO)</Label>
+          <Select value={toIcao} onValueChange={setToIcao}>
+            <SelectTrigger className="font-mono">
+              <SelectValue placeholder="Select destination" />
+            </SelectTrigger>
+            <SelectContent className="max-h-[300px]">
+              <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted">South Africa</div>
+              {groupedAerodromes.ZA.map((a) => (
+                <SelectItem key={a.icao} value={a.icao} className="font-mono text-sm">
+                  {a.icao} - {a.name}
+                </SelectItem>
+              ))}
+              <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted">Namibia</div>
+              {groupedAerodromes.NA.map((a) => (
+                <SelectItem key={a.icao} value={a.icao} className="font-mono text-sm">
+                  {a.icao} - {a.name}
+                </SelectItem>
+              ))}
+              <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted">Botswana</div>
+              {groupedAerodromes.BW.map((a) => (
+                <SelectItem key={a.icao} value={a.icao} className="font-mono text-sm">
+                  {a.icao} - {a.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {toAerodrome && (
+            <p className="text-xs text-muted-foreground mt-1">Elev: {toAerodrome.elevation} ft</p>
+          )}
+        </div>
       </div>
 
       {/* Distance input */}
@@ -39,9 +153,9 @@ export function DestinationPanel({
         </Label>
         <Input
           type="number"
-          value={tripDistance || ''}
-          onChange={(e) => setTripDistance(Math.max(0, parseInt(e.target.value) || 0))}
-          placeholder="Enter distance"
+          value={manualDistance}
+          onChange={(e) => handleManualDistanceChange(e.target.value)}
+          placeholder="Enter distance or select route"
           className="font-mono"
         />
         <p className="text-xs text-muted-foreground mt-1">
