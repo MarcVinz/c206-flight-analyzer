@@ -20,6 +20,8 @@ export default function Index() {
   const [flightDate, setFlightDate] = useState(
     new Date().toISOString().split('T')[0]
   )
+  const [routeFrom, setRouteFrom] = useState('')
+  const [routeTo, setRouteTo] = useState('')
 
   const {
     selectedAircraft,
@@ -136,6 +138,10 @@ export default function Index() {
               tripFuelBurn={tripFuelBurn}
               fuelData={fuelData}
               fuelBurnRate={aircraftConfig.fuelBurn}
+              routeFrom={routeFrom}
+              setRouteFrom={setRouteFrom}
+              routeTo={routeTo}
+              setRouteTo={setRouteTo}
             />
 
             <MassSummaryCard
@@ -163,6 +169,8 @@ export default function Index() {
               flightDate={flightDate}
               pilotName={pilotName}
               aircraftReg={selectedAircraft}
+              routeFrom={routeFrom}
+              routeTo={routeTo}
             />
           </div>
         </div>
@@ -261,13 +269,17 @@ export default function Index() {
               tripFuelBurn={tripFuelBurn}
               fuelData={fuelData}
               fuelBurnRate={aircraftConfig.fuelBurn}
+              routeFrom={routeFrom}
+              setRouteFrom={setRouteFrom}
+              routeTo={routeTo}
+              setRouteTo={setRouteTo}
             />
           </CollapsibleSection>
 
           <CollapsibleSection
             title="Weight Summary"
             icon={<Scale className="h-5 w-5" />}
-            defaultOpen={true}
+            defaultOpen={false}
           >
             <MassSummaryCard
               weightBalance={weightBalance}
@@ -323,6 +335,8 @@ export default function Index() {
               flightDate={flightDate}
               pilotName={pilotName}
               aircraftReg={selectedAircraft}
+              routeFrom={routeFrom}
+              routeTo={routeTo}
             />
           </CollapsibleSection>
         </div>

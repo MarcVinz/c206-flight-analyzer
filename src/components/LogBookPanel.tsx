@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { BookOpen, Mail, Clock, Plane, Navigation, Gauge, Timer, PlaneLanding, Fuel } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,6 +10,8 @@ interface LogBookPanelProps {
   flightDate: string
   pilotName: string
   aircraftReg: string
+  routeFrom?: string
+  routeTo?: string
 }
 
 export function LogBookPanel({
@@ -18,14 +20,25 @@ export function LogBookPanel({
   flightDate,
   pilotName,
   aircraftReg,
+  routeFrom = '',
+  routeTo = '',
 }: LogBookPanelProps) {
   // Flight type
   const [flightType, setFlightType] = useState<'private' | 'instruction'>('private')
   const [instructorName, setInstructorName] = useState('')
 
-  // Airports
-  const [departure, setDeparture] = useState('')
-  const [destination, setDestination] = useState('')
+  // Airports - initialized from Trip Planning
+  const [departure, setDeparture] = useState(routeFrom)
+  const [destination, setDestination] = useState(routeTo)
+
+  // Sync with Trip Planning selections
+  useEffect(() => {
+    if (routeFrom) setDeparture(routeFrom)
+  }, [routeFrom])
+
+  useEffect(() => {
+    if (routeTo) setDestination(routeTo)
+  }, [routeTo])
 
   // Hobbs meter (hourmeter)
   const [hobbsStart, setHobbsStart] = useState<number | ''>('')

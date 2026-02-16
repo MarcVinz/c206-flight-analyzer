@@ -59,10 +59,6 @@ export function MassSummaryCard({
             }`}
             style={{ width: `${Math.min(100, percentOfMax)}%` }}
           />
-          <div
-            className="absolute inset-y-0 w-0.5 bg-foreground"
-            style={{ left: '100%', transform: 'translateX(-100%)' }}
-          />
         </div>
         <div className="flex justify-between text-xs mt-1">
           <span className="text-muted-foreground">0</span>

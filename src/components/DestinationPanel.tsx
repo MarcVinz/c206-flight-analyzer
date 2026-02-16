@@ -12,6 +12,7 @@ import {
 import type { FuelData } from '@/types/aircraft'
 import { formatTime } from '@/lib/utils'
 import { aerodromes, getAerodromeByIcao, calculateDistance, type Aerodrome } from '@/data/aerodromes'
+import { RouteMap } from '@/components/RouteMap'
 
 interface DestinationPanelProps {
   tripDistance: number
@@ -19,6 +20,10 @@ interface DestinationPanelProps {
   tripFuelBurn: number
   fuelData: FuelData
   fuelBurnRate: number
+  routeFrom: string
+  setRouteFrom: (icao: string) => void
+  routeTo: string
+  setRouteTo: (icao: string) => void
 }
 
 export function DestinationPanel({
@@ -27,23 +32,25 @@ export function DestinationPanel({
   tripFuelBurn,
   fuelData,
   fuelBurnRate,
+  routeFrom,
+  setRouteFrom,
+  routeTo,
+  setRouteTo,
 }: DestinationPanelProps) {
-  const [fromIcao, setFromIcao] = useState<string>('')
-  const [toIcao, setToIcao] = useState<string>('')
   const [manualDistance, setManualDistance] = useState<string>('')
 
   // Calculate distance when both aerodromes are selected
   useEffect(() => {
-    if (fromIcao && toIcao) {
-      const from = getAerodromeByIcao(fromIcao)
-      const to = getAerodromeByIcao(toIcao)
+    if (routeFrom && routeTo) {
+      const from = getAerodromeByIcao(routeFrom)
+      const to = getAerodromeByIcao(routeTo)
       if (from && to) {
         const distance = calculateDistance(from, to)
         setTripDistance(distance)
         setManualDistance(String(distance))
       }
     }
-  }, [fromIcao, toIcao, setTripDistance])
+  }, [routeFrom, routeTo, setTripDistance])
 
   // Handle manual distance input
   const handleManualDistanceChange = (value: string) => {
@@ -57,8 +64,8 @@ export function DestinationPanel({
   }
 
   // Get selected aerodrome details
-  const fromAerodrome = fromIcao ? getAerodromeByIcao(fromIcao) : undefined
-  const toAerodrome = toIcao ? getAerodromeByIcao(toIcao) : undefined
+  const fromAerodrome = routeFrom ? getAerodromeByIcao(routeFrom) : undefined
+  const toAerodrome = routeTo ? getAerodromeByIcao(routeTo) : undefined
 
   // Assume 100 kt block speed
   const blockSpeed = 100
@@ -84,11 +91,11 @@ export function DestinationPanel({
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div>
           <Label className="text-xs text-muted-foreground mb-1 block">From (ICAO)</Label>
-          <Select value={fromIcao} onValueChange={setFromIcao}>
+          <Select value={routeFrom} onValueChange={setRouteFrom}>
             <SelectTrigger className="font-mono">
               <SelectValue placeholder="Select departure" />
             </SelectTrigger>
-            <SelectContent className="max-h-[300px]">
+            <SelectContent className="max-h-[300px] z-[1000]">
               <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted">South Africa</div>
               {groupedAerodromes.ZA.map((a) => (
                 <SelectItem key={a.icao} value={a.icao} className="font-mono text-sm">
@@ -115,11 +122,11 @@ export function DestinationPanel({
         </div>
         <div>
           <Label className="text-xs text-muted-foreground mb-1 block">To (ICAO)</Label>
-          <Select value={toIcao} onValueChange={setToIcao}>
+          <Select value={routeTo} onValueChange={setRouteTo}>
             <SelectTrigger className="font-mono">
               <SelectValue placeholder="Select destination" />
             </SelectTrigger>
-            <SelectContent className="max-h-[300px]">
+            <SelectContent className="max-h-[300px] z-[1000]">
               <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted">South Africa</div>
               {groupedAerodromes.ZA.map((a) => (
                 <SelectItem key={a.icao} value={a.icao} className="font-mono text-sm">
@@ -144,6 +151,15 @@ export function DestinationPanel({
             <p className="text-xs text-muted-foreground mt-1">Elev: {toAerodrome.elevation} ft</p>
           )}
         </div>
+      </div>
+
+      {/* Route Map */}
+      <div className="mb-4">
+        <RouteMap
+          fromAerodrome={fromAerodrome}
+          toAerodrome={toAerodrome}
+          distance={tripDistance}
+        />
       </div>
 
       {/* Distance input */}
