@@ -168,7 +168,7 @@ export const MAX_FUEL_GALLONS = 80       // usable (default for C206)
 export const TOTAL_FUEL_GALLONS = 84     // total capacity
 
 // CG Envelope - from POH (Weight vs Moment/1000)
-// Cessna 206 envelope
+// Cessna 206 envelope (default)
 export const CG_ENVELOPE_C206: CGEnvelopePoint[] = [
   { moment: 95, weight: 2400 },    // Forward limit - light
   { moment: 110, weight: 2700 },   // Forward limit - mid
@@ -181,7 +181,58 @@ export const CG_ENVELOPE_C206: CGEnvelopePoint[] = [
   { moment: 95, weight: 2400 },    // Close polygon
 ]
 
-// Cessna 182 envelope (ZS-FJF, ZS-IAE - 2800 lbs max)
+// ZS-DIT envelope (U206E specific)
+export const CG_ENVELOPE_ZS_DIT: CGEnvelopePoint[] = [
+  { moment: 62, weight: 1900 },    // Forward limit - min weight
+  { moment: 82, weight: 2540 },    // Forward limit - inflection
+  { moment: 148, weight: 3600 },   // Forward limit - max weight
+  { moment: 180, weight: 3600 },   // Aft limit - max weight
+  { moment: 95, weight: 1900 },    // Aft limit - min weight
+  { moment: 62, weight: 1900 },    // Close polygon
+]
+
+// ZS-ESJ envelope (U206G specific)
+export const CG_ENVELOPE_ZS_ESJ: CGEnvelopePoint[] = [
+  { moment: 60, weight: 1900 },    // Forward limit - min weight
+  { moment: 80, weight: 2500 },    // Forward limit - inflection
+  { moment: 150, weight: 3600 },   // Forward limit - max weight
+  { moment: 170, weight: 3600 },   // Aft limit - max weight
+  { moment: 90, weight: 1900 },    // Aft limit - min weight
+  { moment: 60, weight: 1900 },    // Close polygon
+]
+
+// ZS-PAG envelope (U206G specific)
+export const CG_ENVELOPE_ZS_PAG: CGEnvelopePoint[] = [
+  { moment: 60, weight: 1900 },    // Forward limit - min weight
+  { moment: 80, weight: 2500 },    // Forward limit - inflection
+  { moment: 150, weight: 3600 },   // Forward limit - max weight
+  { moment: 170, weight: 3600 },   // Aft limit - max weight
+  { moment: 120, weight: 2550 },   // Aft limit - inflection
+  { moment: 90, weight: 1900 },    // Aft limit - min weight
+  { moment: 60, weight: 1900 },    // Close polygon
+]
+
+// ZS-IAE envelope (C182 specific - 2800 lbs max)
+export const CG_ENVELOPE_ZS_IAE: CGEnvelopePoint[] = [
+  { moment: 58, weight: 1800 },    // Forward limit - min weight
+  { moment: 72, weight: 2210 },    // Forward limit - inflection
+  { moment: 105, weight: 2800 },   // Forward limit - max weight
+  { moment: 130, weight: 2800 },   // Aft limit - max weight
+  { moment: 85, weight: 1800 },    // Aft limit - min weight
+  { moment: 58, weight: 1800 },    // Close polygon
+]
+
+// ZS-FJF envelope (C182 specific - 2800 lbs max)
+export const CG_ENVELOPE_ZS_FJF: CGEnvelopePoint[] = [
+  { moment: 58, weight: 1800 },    // Forward limit - min weight
+  { moment: 72, weight: 2210 },    // Forward limit - inflection
+  { moment: 105, weight: 2800 },   // Forward limit - max weight
+  { moment: 135, weight: 2800 },   // Aft limit - max weight
+  { moment: 85, weight: 1800 },    // Aft limit - min weight
+  { moment: 58, weight: 1800 },    // Close polygon
+]
+
+// Cessna 182 envelope (generic - 2800 lbs max)
 export const CG_ENVELOPE_C182: CGEnvelopePoint[] = [
   { moment: 62, weight: 2100 },    // Forward limit - light
   { moment: 70, weight: 2300 },    // Forward limit - mid
@@ -192,15 +243,14 @@ export const CG_ENVELOPE_C182: CGEnvelopePoint[] = [
   { moment: 62, weight: 2100 },    // Close polygon
 ]
 
-// Cessna 182P envelope (ZS-PWC - 2950 lbs max)
+// ZS-PWC envelope (C182P specific - 2950 lbs max)
 export const CG_ENVELOPE_C182P: CGEnvelopePoint[] = [
-  { moment: 62, weight: 2100 },    // Forward limit - light
-  { moment: 70, weight: 2300 },    // Forward limit - mid
-  { moment: 90, weight: 2950 },    // Forward limit - max
-  { moment: 145, weight: 2950 },   // Aft limit - max
-  { moment: 105, weight: 2300 },   // Aft limit - mid
-  { moment: 93, weight: 2100 },    // Aft limit - light
-  { moment: 62, weight: 2100 },    // Close polygon
+  { moment: 60, weight: 1800 },    // Forward limit - min weight
+  { moment: 72, weight: 2250 },    // Forward limit - inflection
+  { moment: 118, weight: 2950 },   // Forward limit - max weight
+  { moment: 145, weight: 2950 },   // Aft limit - max weight
+  { moment: 87, weight: 1800 },    // Aft limit - min weight
+  { moment: 60, weight: 1800 },    // Close polygon
 ]
 
 // Legacy alias
@@ -209,9 +259,16 @@ export const CG_ENVELOPE = CG_ENVELOPE_C206
 // Get CG envelope for aircraft
 export function getCGEnvelopeForAircraft(registration: string): CGEnvelopePoint[] {
   switch (registration) {
-    case 'ZS-FJF':
+    case 'ZS-DIT':
+      return CG_ENVELOPE_ZS_DIT
+    case 'ZS-ESJ':
+      return CG_ENVELOPE_ZS_ESJ
+    case 'ZS-PAG':
+      return CG_ENVELOPE_ZS_PAG
     case 'ZS-IAE':
-      return CG_ENVELOPE_C182
+      return CG_ENVELOPE_ZS_IAE
+    case 'ZS-FJF':
+      return CG_ENVELOPE_ZS_FJF
     case 'ZS-PWC':
       return CG_ENVELOPE_C182P
     default:
