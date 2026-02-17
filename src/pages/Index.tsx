@@ -180,7 +180,7 @@ export default function Index() {
           <CollapsibleSection
             title="Payload"
             icon={<Weight className="h-5 w-5" />}
-            defaultOpen={true}
+            defaultOpen={false}
           >
             <div className="space-y-4">
               {/* Front Row */}
@@ -233,7 +233,7 @@ export default function Index() {
           <CollapsibleSection
             title="Fuel"
             icon={<Fuel className="h-5 w-5" />}
-            defaultOpen={true}
+            defaultOpen={false}
           >
             <FuelPanel
               fuelGallons={fuelGallons}
@@ -343,13 +343,13 @@ export default function Index() {
       </main>
 
       {/* Footer */}
-      <footer className="py-3 sm:py-4 mt-6 sm:mt-8 no-print">
-        <div className="container mx-auto px-3 sm:px-4 text-center text-sm text-muted-foreground">
+      <footer className="py-2 sm:py-3 mt-6 sm:mt-8 no-print">
+        <div className="container mx-auto px-3 sm:px-4 text-center text-[10px] sm:text-xs text-muted-foreground">
           <p>Flight Analyzer - Africa Bushpilot Adventures</p>
-          <p className="text-xs mt-1">
+          <p className="mt-1">
             For flight planning purposes only. Always verify with official POH.
           </p>
-          <p className="text-xs mt-2">&copy; 2026 Marc Vincent</p>
+          <p className="mt-1">&copy; 2026 Marc Vincent</p>
         </div>
       </footer>
     </div>
