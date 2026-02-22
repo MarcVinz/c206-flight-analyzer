@@ -1,9 +1,18 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { Activity, Thermometer, Gauge } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-export function PerformancePanel() {
+export type PerfData = {
+  altitude: number; qnh: number; oat: number
+  pressureAltitude: number; densityAltitude: number; isaDeviation: number
+}
+
+interface PerformancePanelProps {
+  onDataChange?: (data: PerfData) => void
+}
+
+export function PerformancePanel({ onDataChange }: PerformancePanelProps = {}) {
   // Use string state for better keyboard input handling
   const [altitudeStr, setAltitudeStr] = useState('0')
   const [qnhStr, setQnhStr] = useState('1013')
@@ -31,6 +40,10 @@ export function PerformancePanel() {
       isaDeviation,
     }
   }, [altitude, qnh, oat])
+
+  useEffect(() => {
+    onDataChange?.({ altitude, qnh, oat, ...performanceData })
+  }, [altitude, qnh, oat, performanceData, onDataChange])
 
   return (
     <div className="aviation-card p-5">

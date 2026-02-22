@@ -15,6 +15,7 @@ interface HeaderProps {
   onPilotNameChange: (name: string) => void
   flightDate: string
   onFlightDateChange: (date: string) => void
+  onPrint: () => void
 }
 
 export function Header({
@@ -25,10 +26,8 @@ export function Header({
   onPilotNameChange,
   flightDate,
   onFlightDateChange,
+  onPrint,
 }: HeaderProps) {
-  const handlePrint = () => {
-    window.print()
-  }
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50 no-print">
@@ -63,7 +62,7 @@ export function Header({
               <Button
                 variant="outline"
                 size="icon"
-                onClick={handlePrint}
+                onClick={onPrint}
                 title="Print"
                 className="h-9 w-9"
               >
@@ -170,7 +169,7 @@ export function Header({
             <Button
               variant="outline"
               size="icon"
-              onClick={handlePrint}
+              onClick={onPrint}
               title="Print"
             >
               <Printer className="h-4 w-4" />

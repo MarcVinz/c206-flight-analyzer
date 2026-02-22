@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect } from 'react'
-import { BookOpen, Mail, Clock, Plane, Navigation, Gauge, Timer, PlaneLanding, Fuel } from 'lucide-react'
+import { BookOpen, Mail, Clock, Plane, Navigation, Gauge, Timer, PlaneLanding, Fuel, Save } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { jsPDF } from 'jspdf'
 
 interface LogBookPanelProps {
   initialFuelGallons: number
@@ -105,6 +106,136 @@ export function LogBookPanel({
     return `${h}h${String(m).padStart(2, '0')}`
   }
 
+  // Save PDF
+  const saveFlightPdf = () => {
+    const doc = new jsPDF({ unit: 'mm', format: 'a4' })
+    const pageW = doc.internal.pageSize.getWidth()
+    const pageH = doc.internal.pageSize.getHeight()
+
+    const blockTimeStr = calculatedBlockTime ? formatTime(calculatedBlockTime) : flightTime || '--'
+    const hobbsTimeStr = hobbsTime ? hobbsTime.toFixed(1) + ' h' : '--'
+
+    // ── Header ───────────────────────────────────────────────────────
+    doc.setFillColor(26, 47, 36)   // dark green (theme-color)
+    doc.rect(0, 0, pageW, 28, 'F')
+    doc.setTextColor(255, 255, 255)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(18)
+    doc.text(`${aircraftReg}  ·  Flight Log`, pageW / 2, 12, { align: 'center' })
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    doc.text('Africa Bushpilot Adventures', pageW / 2, 21, { align: 'center' })
+
+    // ── Date / Pilot / Type band ──────────────────────────────────────
+    let y = 38
+    doc.setFillColor(241, 245, 249)
+    doc.roundedRect(14, y - 6, pageW - 28, 14, 3, 3, 'F')
+    doc.setTextColor(30, 30, 30)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.text('Date :', 20, y + 2)
+    doc.setFont('helvetica', 'normal')
+    doc.text(flightDate || '--', 40, y + 2)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Pilot :', pageW / 2 - 10, y + 2)
+    doc.setFont('helvetica', 'normal')
+    doc.text(pilotName || '--', pageW / 2 + 10, y + 2)
+
+    const typeLabel = flightType === 'instruction' ? 'Instruction' : 'Private'
+    const typeBg: [number, number, number] = flightType === 'instruction' ? [59, 130, 246] : [34, 197, 94]
+    doc.setFillColor(...typeBg)
+    doc.roundedRect(pageW - 46, y - 4, 32, 10, 2, 2, 'F')
+    doc.setTextColor(255, 255, 255)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(8)
+    doc.text(typeLabel, pageW - 30, y + 2, { align: 'center' })
+
+    if (flightType === 'instruction' && instructorName) {
+      y += 16
+      doc.setTextColor(30, 30, 30)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(10)
+      doc.text('Instructor :', 20, y)
+      doc.setFont('helvetica', 'normal')
+      doc.text(instructorName, 55, y)
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────
+    const drawSection = (title: string, yStart: number) => {
+      doc.setFillColor(26, 47, 36)
+      doc.rect(14, yStart, pageW - 28, 7, 'F')
+      doc.setTextColor(255, 255, 255)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(9)
+      doc.text(title, 18, yStart + 5)
+      return yStart + 13
+    }
+
+    const drawRow = (label: string, value: string, yPos: number, shade = false) => {
+      if (shade) {
+        doc.setFillColor(248, 250, 252)
+        doc.rect(14, yPos - 5, pageW - 28, 9, 'F')
+      }
+      doc.setTextColor(100, 116, 139)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(9)
+      doc.text(label, 20, yPos)
+      doc.setTextColor(15, 23, 42)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(10)
+      doc.text(value, pageW - 20, yPos, { align: 'right' })
+      return yPos + 11
+    }
+
+    // ── Route ─────────────────────────────────────────────────────────
+    y += 16
+    y = drawSection('ROUTE', y)
+    y = drawRow('Departure', departure || '--', y, false)
+    y = drawRow('Destination', destination || '--', y, true)
+
+    // ── Hobbs ─────────────────────────────────────────────────────────
+    y += 4
+    y = drawSection('HOBBS METER', y)
+    y = drawRow('Start', hobbsStart !== '' ? String(hobbsStart) : '--', y, false)
+    y = drawRow('End', hobbsEnd !== '' ? String(hobbsEnd) : '--', y, true)
+    y = drawRow('Hobbs Time', hobbsTimeStr, y, false)
+
+    // ── Block / Flight time ───────────────────────────────────────────
+    y += 4
+    y = drawSection('TIMES', y)
+    y = drawRow('Block Out', blockOut || '--', y, false)
+    y = drawRow('Block In', blockIn || '--', y, true)
+    y = drawRow('Block Time', blockTimeStr, y, false)
+    y = drawRow('Flight Time', flightTime || blockTimeStr, y, true)
+    y = drawRow('Landings', String(landings !== '' ? landings : 0), y, false)
+
+    // ── Fuel ──────────────────────────────────────────────────────────
+    y += 4
+    y = drawSection('FUEL', y)
+    y = drawRow('Initial', `${initialFuelGallons.toFixed(1)} gal`, y, false)
+    y = drawRow('Remaining', fuelRemaining !== '' ? `${Number(fuelRemaining).toFixed(1)} gal` : '--', y, true)
+    if (fuelUsed !== null) {
+      const burnStr = hobbsTime && hobbsTime > 0
+        ? `${fuelUsed.toFixed(1)} gal  (${(fuelUsed / hobbsTime).toFixed(1)} gal/h)`
+        : `${fuelUsed.toFixed(1)} gal`
+      y = drawRow('Used', burnStr, y, false)
+    }
+
+    // ── Footer ────────────────────────────────────────────────────────
+    doc.setFillColor(241, 245, 249)
+    doc.rect(0, pageH - 14, pageW, 14, 'F')
+    doc.setTextColor(148, 163, 184)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7.5)
+    doc.text(
+      `Generated ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}  ·  C206 Flight Analyzer`,
+      pageW / 2, pageH - 5, { align: 'center' }
+    )
+
+    const dateStr = (flightDate || 'unknown').replace(/\//g, '')
+    doc.save(`flight-log-${aircraftReg}-${dateStr}.pdf`)
+  }
+
   // Send email
   const sendLogbookEmail = () => {
     const blockTimeStr = calculatedBlockTime ? formatTime(calculatedBlockTime) : flightTime || 'N/A'
@@ -162,27 +293,26 @@ Generated by C206 Flight Analyzer
           <BookOpen className="h-5 w-5 text-primary" />
           <h3 className="text-lg font-semibold">Flight Log</h3>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={sendLogbookEmail}
-          className="h-8 px-3"
-        >
-          <Mail className="h-4 w-4 mr-1" />
-          Send
-        </Button>
-      </div>
-
-      {/* Mobile email button - visible at TOP when section-header is hidden */}
-      <div className="lg:hidden mb-4">
-        <Button
-          variant="default"
-          onClick={sendLogbookEmail}
-          className="w-full"
-        >
-          <Mail className="h-4 w-4 mr-2" />
-          Send Flight Log
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={saveFlightPdf}
+            className="h-8 w-8 p-0"
+            title="Save PDF"
+          >
+            <Save className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={sendLogbookEmail}
+            className="h-8 w-8 p-0"
+            title="Send by email"
+          >
+            <Mail className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <div className="space-y-4">
@@ -428,6 +558,16 @@ Generated by C206 Flight Analyzer
             </div>
           )}
         </div>
+      </div>
+
+      {/* Mobile buttons */}
+      <div className="lg:hidden mt-4 flex justify-end gap-2">
+        <Button variant="outline" size="sm" onClick={saveFlightPdf} className="h-8 w-8 p-0">
+          <Save className="h-4 w-4" />
+        </Button>
+        <Button variant="outline" size="sm" onClick={sendLogbookEmail} className="h-8 w-8 p-0">
+          <Mail className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   )
