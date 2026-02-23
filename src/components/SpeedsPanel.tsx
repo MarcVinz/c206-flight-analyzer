@@ -6,12 +6,14 @@ interface SpeedsPanelProps {
   speeds: SpeedData
 }
 
+const Unit = () => <span className="text-xs text-muted-foreground font-normal ml-1">mph</span>
+
 export function SpeedsPanel({ speeds }: SpeedsPanelProps) {
   return (
     <div className="aviation-card p-5">
       <div className="section-header flex items-center gap-2 mb-4">
         <Gauge className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-semibold">Speeds (mph)</h3>
+        <h3 className="text-lg font-semibold">Speeds</h3>
       </div>
 
       <div className="space-y-2 text-sm">
@@ -19,11 +21,11 @@ export function SpeedsPanel({ speeds }: SpeedsPanelProps) {
         <div className="grid grid-cols-2 gap-2">
           <div className="flex justify-between p-2 rounded bg-aviation-red/10">
             <span className="text-aviation-red font-medium">Vne</span>
-            <span className="font-mono font-bold text-aviation-red">{speeds.neverExceed}</span>
+            <span className="font-mono font-bold text-aviation-red">{speeds.neverExceed}<Unit /></span>
           </div>
           <div className="flex justify-between p-2 rounded bg-aviation-amber/10">
             <span className="text-aviation-amber font-medium">Vno</span>
-            <span className="font-mono font-bold text-aviation-amber">{speeds.maxStructural}</span>
+            <span className="font-mono font-bold text-aviation-amber">{speeds.maxStructural}<Unit /></span>
           </div>
         </div>
 
@@ -33,27 +35,27 @@ export function SpeedsPanel({ speeds }: SpeedsPanelProps) {
         <div className="space-y-1">
           <div className="flex justify-between py-1">
             <span className="text-muted-foreground">Rotate</span>
-            <span className="font-mono">{speeds.rotate}</span>
+            <span className="font-mono">{speeds.rotate}<Unit /></span>
           </div>
           <div className="flex justify-between py-1">
             <span className="text-muted-foreground">Best Angle (Vx)</span>
-            <span className="font-mono">{speeds.bestAngle}</span>
+            <span className="font-mono">{speeds.bestAngle}<Unit /></span>
           </div>
           <div className="flex justify-between py-1">
             <span className="text-muted-foreground">Best Rate (Vy)</span>
-            <span className="font-mono">{speeds.bestRate}</span>
+            <span className="font-mono">{speeds.bestRate}<Unit /></span>
           </div>
           <div className="flex justify-between py-1">
             <span className="text-muted-foreground">Cruise Climb</span>
-            <span className="font-mono">{speeds.cruiseClimb}</span>
+            <span className="font-mono">{speeds.cruiseClimb}<Unit /></span>
           </div>
           <div className="flex justify-between py-1">
             <span className="text-muted-foreground">Manoeuvring (Va)</span>
-            <span className="font-mono font-semibold">{speeds.manoeuvring}</span>
+            <span className="font-mono font-semibold">{speeds.manoeuvring}<Unit /></span>
           </div>
           <div className="flex justify-between py-1">
             <span className="text-muted-foreground">Best Glide</span>
-            <span className="font-mono">{speeds.bestGlide}</span>
+            <span className="font-mono">{speeds.bestGlide}<Unit /></span>
           </div>
         </div>
 
@@ -63,26 +65,26 @@ export function SpeedsPanel({ speeds }: SpeedsPanelProps) {
         <div className="space-y-1">
           <div className="flex justify-between py-1">
             <span className="text-muted-foreground">Flaps 10°</span>
-            <span className="font-mono">{speeds.flaps10}</span>
+            <span className="font-mono">{speeds.flaps10}<Unit /></span>
           </div>
           <div className="flex justify-between py-1">
             <span className="text-muted-foreground">Flaps 20°-Full</span>
-            <span className="font-mono">{speeds.flaps20Full}</span>
+            <span className="font-mono">{speeds.flaps20Full}<Unit /></span>
           </div>
           <div className="flex justify-between py-1">
             <span className="text-muted-foreground">Approach Full Flaps</span>
-            <span className="font-mono">{speeds.approachFull}</span>
+            <span className="font-mono">{speeds.approachFull}<Unit /></span>
           </div>
           <div className="flex justify-between py-1">
             <span className="text-muted-foreground">Over the Fence</span>
-            <span className="font-mono">{speeds.overFence}</span>
+            <span className="font-mono">{speeds.overFence}<Unit /></span>
           </div>
         </div>
 
         <div className="section-divider my-3" />
 
         {/* Stall speeds */}
-        <h4 className="font-medium text-sm mb-2">Stall Speeds (Power Off)</h4>
+        <h4 className="font-medium text-sm mb-2">Stall Speeds (Power Off) <span className="text-muted-foreground font-normal">[mph]</span></h4>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>
