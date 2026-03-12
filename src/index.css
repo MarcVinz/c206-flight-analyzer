@@ -120,3 +120,8 @@
     display: none !important;
   }
 }
+
+/* Hide header when map is in fullscreen */
+body.map-fullscreen header {
+  display: none !important;
+}

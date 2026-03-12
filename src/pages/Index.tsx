@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import { jsPDF } from 'jspdf'
-import { Weight, Target, Fuel, Scale, ClipboardList, Gauge, AlertTriangle, MapPin, BookOpen, Activity } from 'lucide-react'
+import { Weight, Target, Fuel, Scale, ClipboardList, Gauge, AlertTriangle, MapPin, BookOpen, Activity, Plane } from 'lucide-react'
 import { Header } from '@/components/Header'
 import { MassInputCard } from '@/components/MassInputCard'
 import { FuelPanel } from '@/components/FuelPanel'
@@ -13,14 +13,19 @@ import { ChecklistPanel } from '@/components/ChecklistPanel'
 import { LogBookPanel } from '@/components/LogBookPanel'
 import { PerformancePanel, type PerfData } from '@/components/PerformancePanel'
 import { CollapsibleSection } from '@/components/CollapsibleSection'
+import { FlightInfoPanel } from '@/components/FlightInfoPanel'
 import { useWeightBalance } from '@/hooks/useWeightBalance'
 import { isC182, getCGEnvelopeForAircraft } from '@/types/aircraft'
+import { getSunTimes, formatSunTime } from '@/lib/sunCalc'
 
 export default function Index() {
   const [pilotName, setPilotName] = useState('')
   const [flightDate, setFlightDate] = useState(
     new Date().toISOString().split('T')[0]
   )
+  const [flightType, setFlightType] = useState<'private' | 'instruction'>('private')
+  const [instructorName, setInstructorName] = useState('')
+  const [gpsCoords, setGpsCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [routeFrom, setRouteFrom] = useState('')
   const [routeTo, setRouteTo] = useState('')
 
@@ -103,11 +108,27 @@ export default function Index() {
     }
 
     // ── Flight Info ──────────────────────────────────────────────────
+    const formattedDate = (() => {
+      if (!flightDate) return '--'
+      const [yy, mm, dd] = flightDate.split('-')
+      return `${dd}.${mm}.${yy}`
+    })()
+
     sectionTitle('FLIGHT INFO')
-    row('Date', flightDate || '--', false)
+    row('Date', formattedDate, false)
     row('Pilot', pilotName || '--', true)
+    row('Flight Type', flightType === 'instruction' ? 'Instruction' : 'Private', false)
+    if (flightType === 'instruction' && instructorName) {
+      row('Instructor', instructorName, true)
+    }
+    if (gpsCoords && flightDate) {
+      const sunTimes = getSunTimes(new Date(flightDate), gpsCoords.lat, gpsCoords.lng)
+      row('Sunrise', formatSunTime(sunTimes.sunrise), false)
+      row('Sunset', formatSunTime(sunTimes.sunset), true)
+    }
     if (routeFrom || routeTo) {
-      row('Route', [routeFrom, routeTo].filter(Boolean).join(' → '), false)
+      const route = [routeFrom, routeTo].filter(Boolean).join(' > ')
+      row('Route', route, false)
     }
     if (tripDistance > 0) {
       row('Trip Distance', `${tripDistance} nm`, !!(routeFrom || routeTo))
@@ -377,22 +398,26 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header
-        selectedAircraft={selectedAircraft}
-        onAircraftChange={selectAircraft}
-        aircraftConfig={aircraftConfig}
-        pilotName={pilotName}
-        onPilotNameChange={setPilotName}
-        flightDate={flightDate}
-        onFlightDateChange={setFlightDate}
-        onPrint={generateBriefingPdf}
-      />
+      <Header onPrint={generateBriefingPdf} />
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Desktop: 3-column layout */}
         <div className="hidden lg:grid lg:grid-cols-3 gap-6">
-          {/* Column 1: Loading */}
+          {/* Column 1: Flight Info + Loading */}
           <div className="space-y-6">
+            <FlightInfoPanel
+              selectedAircraft={selectedAircraft}
+              onAircraftChange={selectAircraft}
+              pilotName={pilotName}
+              onPilotNameChange={setPilotName}
+              flightDate={flightDate}
+              onFlightDateChange={setFlightDate}
+              flightType={flightType}
+              onFlightTypeChange={setFlightType}
+              instructorName={instructorName}
+              onInstructorNameChange={setInstructorName}
+              onCoordsChange={setGpsCoords}
+            />
             <div className="aviation-card p-5">
               <div className="flex items-center gap-2 mb-4">
                 <Weight className="h-5 w-5 text-primary" />
@@ -504,12 +529,34 @@ export default function Index() {
               aircraftReg={selectedAircraft}
               routeFrom={routeFrom}
               routeTo={routeTo}
+              flightType={flightType}
+              instructorName={instructorName}
             />
           </div>
         </div>
 
         {/* Mobile/Tablet: Collapsible sections */}
         <div className="lg:hidden space-y-3">
+          <CollapsibleSection
+            title="Flight Info"
+            icon={<Plane className="h-5 w-5" />}
+            defaultOpen={false}
+          >
+            <FlightInfoPanel
+              selectedAircraft={selectedAircraft}
+              onAircraftChange={selectAircraft}
+              pilotName={pilotName}
+              onPilotNameChange={setPilotName}
+              flightDate={flightDate}
+              onFlightDateChange={setFlightDate}
+              flightType={flightType}
+              onFlightTypeChange={setFlightType}
+              instructorName={instructorName}
+              onInstructorNameChange={setInstructorName}
+              onCoordsChange={setGpsCoords}
+            />
+          </CollapsibleSection>
+
           <CollapsibleSection
             title="Payload"
             icon={<Weight className="h-5 w-5" />}
@@ -670,6 +717,8 @@ export default function Index() {
               aircraftReg={selectedAircraft}
               routeFrom={routeFrom}
               routeTo={routeTo}
+              flightType={flightType}
+              instructorName={instructorName}
             />
           </CollapsibleSection>
         </div>
@@ -678,10 +727,7 @@ export default function Index() {
       {/* Footer */}
       <footer className="py-2 sm:py-3 mt-6 sm:mt-8 no-print">
         <div className="container mx-auto px-3 sm:px-4 text-center text-[10px] sm:text-xs text-muted-foreground">
-          <p>Flight Analyzer - Africa Bushpilot Adventures</p>
-          <p className="mt-1">
-            For flight planning purposes only. Always verify with official POH.
-          </p>
+          <p>For flight planning purposes only. Always verify with official POH.</p>
           <p className="mt-1">&copy; 2026 Marc Vincent</p>
         </div>
       </footer>

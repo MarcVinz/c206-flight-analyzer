@@ -1,7 +1,8 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { Maximize2, Minimize2, Satellite, Map } from 'lucide-react'
 import { type Aerodrome } from '@/data/aerodromes'
 
 // Fix for default marker icons in Leaflet with Vite
@@ -42,6 +43,7 @@ const arrivalIcon = new L.DivIcon({
 interface RouteMapProps {
   fromAerodrome?: Aerodrome
   toAerodrome?: Aerodrome
+  waypointCoords?: [number, number][]
   distance?: number
 }
 
@@ -58,19 +60,52 @@ function parseCoord(coord: string): number {
   return decimal
 }
 
-// Component to fit map bounds to route
-function FitBounds({ from, to }: { from: [number, number]; to: [number, number] }) {
+// Component to fit map bounds to all route points
+function FitBounds({ points }: { points: [number, number][] }) {
   const map = useMap()
 
   useEffect(() => {
-    const bounds = L.latLngBounds([from, to])
+    if (points.length < 2) return
+    const bounds = L.latLngBounds(points)
     map.fitBounds(bounds, { padding: [30, 30], maxZoom: 8 })
-  }, [map, from, to])
+  }, [map, points])
 
   return null
 }
 
-export function RouteMap({ fromAerodrome, toAerodrome, distance }: RouteMapProps) {
+const TILE_OSM = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+const TILE_SAT = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+
+// Waypoint icon (orange dot)
+const waypointIcon = new L.DivIcon({
+  className: 'custom-marker',
+  html: `<div style="background-color: #f97316; width: 16px; height: 16px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+})
+
+export function RouteMap({ fromAerodrome, toAerodrome, waypointCoords = [], distance }: RouteMapProps) {
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [isSatellite, setIsSatellite] = useState(false)
+
+  // Escape key closes fullscreen
+  useEffect(() => {
+    if (!isFullscreen) return
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setIsFullscreen(false) }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [isFullscreen])
+
+  // Lock body scroll + hide header when fullscreen
+  useEffect(() => {
+    document.body.style.overflow = isFullscreen ? 'hidden' : ''
+    document.body.classList.toggle('map-fullscreen', isFullscreen)
+    return () => {
+      document.body.style.overflow = ''
+      document.body.classList.remove('map-fullscreen')
+    }
+  }, [isFullscreen])
+
   // Parse coordinates
   const fromCoords = useMemo((): [number, number] | null => {
     if (!fromAerodrome) return null
@@ -82,21 +117,28 @@ export function RouteMap({ fromAerodrome, toAerodrome, distance }: RouteMapProps
     return [parseCoord(toAerodrome.latitude), parseCoord(toAerodrome.longitude)]
   }, [toAerodrome])
 
+  // All route points for polyline and bounds
+  const allPoints = useMemo((): [number, number][] => [
+    ...(fromCoords ? [fromCoords] : []),
+    ...waypointCoords,
+    ...(toCoords ? [toCoords] : []),
+  ], [fromCoords, waypointCoords, toCoords])
+
   // Default center (Southern Africa)
   const defaultCenter: [number, number] = [-22, 20]
 
-  // Calculate center between two points
+  // Center on all points
   const center = useMemo((): [number, number] => {
-    if (fromCoords && toCoords) {
-      return [(fromCoords[0] + toCoords[0]) / 2, (fromCoords[1] + toCoords[1]) / 2]
+    if (allPoints.length > 0) {
+      const lat = allPoints.reduce((s, p) => s + p[0], 0) / allPoints.length
+      const lng = allPoints.reduce((s, p) => s + p[1], 0) / allPoints.length
+      return [lat, lng]
     }
-    if (fromCoords) return fromCoords
-    if (toCoords) return toCoords
     return defaultCenter
-  }, [fromCoords, toCoords])
+  }, [allPoints])
 
   // Show placeholder if no selection
-  if (!fromCoords && !toCoords) {
+  if (allPoints.length === 0) {
     return (
       <div className="h-48 bg-muted/50 rounded-lg flex items-center justify-center text-muted-foreground text-sm">
         Select departure and destination to view route
@@ -104,54 +146,83 @@ export function RouteMap({ fromAerodrome, toAerodrome, distance }: RouteMapProps
     )
   }
 
-  return (
-    <div className="h-48 rounded-lg overflow-hidden border border-border/50">
-      <MapContainer
-        center={center}
-        zoom={5}
-        style={{ height: '100%', width: '100%' }}
-        zoomControl={false}
-        attributionControl={false}
-      >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
+  // Button style shared
+  const btnClass = 'z-[1000] p-1.5 rounded bg-background/90 border border-border/50 text-muted-foreground hover:text-foreground transition-colors'
 
-        {/* Departure marker */}
-        {fromCoords && (
-          <Marker position={fromCoords} icon={departureIcon} />
-        )}
+  const mapContent = (
+    <MapContainer
+      key={`${isFullscreen ? 'fullscreen' : 'inline'}-${isSatellite ? 'sat' : 'osm'}`}
+      center={center}
+      zoom={5}
+      style={{ height: '100%', width: '100%' }}
+      zoomControl={true}
+      attributionControl={false}
+    >
+      <TileLayer url={isSatellite ? TILE_SAT : TILE_OSM} />
 
-        {/* Arrival marker */}
-        {toCoords && (
-          <Marker position={toCoords} icon={arrivalIcon} />
-        )}
+      {fromCoords && <Marker position={fromCoords} icon={departureIcon} />}
+      {waypointCoords.map((pos, i) => (
+        <Marker key={i} position={pos} icon={waypointIcon} />
+      ))}
+      {toCoords && <Marker position={toCoords} icon={arrivalIcon} />}
 
-        {/* Route line */}
-        {fromCoords && toCoords && (
-          <>
-            <Polyline
-              positions={[fromCoords, toCoords]}
-              pathOptions={{
-                color: '#f97316',
-                weight: 3,
-                opacity: 0.8,
-                dashArray: '10, 10',
-              }}
-            />
-            <FitBounds from={fromCoords} to={toCoords} />
-          </>
-        )}
-      </MapContainer>
-
-      {/* Distance overlay */}
-      {distance && distance > 0 && (
-        <div className="relative">
-          <div className="absolute bottom-2 right-2 bg-background/90 px-2 py-1 rounded text-xs font-mono border border-border/50">
-            {distance} NM
-          </div>
-        </div>
+      {allPoints.length >= 2 && (
+        <>
+          <Polyline
+            positions={allPoints}
+            pathOptions={{ color: '#f97316', weight: 3, opacity: 0.8, dashArray: '10, 10' }}
+          />
+          <FitBounds points={allPoints} />
+        </>
       )}
+    </MapContainer>
+  )
+
+  const toggleBtn = (
+    <button
+      type="button"
+      onClick={() => setIsFullscreen(v => !v)}
+      className={`absolute top-2 right-2 ${btnClass}`}
+      title={isFullscreen ? 'Réduire' : 'Agrandir'}
+    >
+      {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+    </button>
+  )
+
+  const satelliteBtn = (
+    <button
+      type="button"
+      onClick={() => setIsSatellite(v => !v)}
+      className={`absolute bottom-2 left-2 ${btnClass}`}
+      title={isSatellite ? 'Vue carte' : 'Vue satellite'}
+    >
+      {isSatellite ? <Map className="h-3.5 w-3.5" /> : <Satellite className="h-3.5 w-3.5" />}
+    </button>
+  )
+
+  const distanceOverlay = distance && distance > 0 && (
+    <div className="absolute bottom-2 right-2 z-[1000] bg-background/90 px-2 py-1 rounded text-xs font-mono border border-border/50">
+      {distance} NM
+    </div>
+  )
+
+  if (isFullscreen) {
+    return (
+      <div className="fixed inset-0 z-40 bg-background">
+        {mapContent}
+        {toggleBtn}
+        {satelliteBtn}
+        {distanceOverlay}
+      </div>
+    )
+  }
+
+  return (
+    <div className="relative h-48 rounded-lg overflow-hidden border border-border/50">
+      {mapContent}
+      {toggleBtn}
+      {satelliteBtn}
+      {distanceOverlay}
     </div>
   )
 }
