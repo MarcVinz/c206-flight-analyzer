@@ -205,64 +205,48 @@ export default function Index() {
     }
     y += 3
 
-    // ── Trip Planning ─────────────────────────────────────────────────
-    const td = tripDataRef.current
-    const hasTrip = td.from || td.to || td.waypoints.length > 0
-    if (hasTrip) {
-      const isaTemp = (elevFt: number) => 15 - (elevFt / 1000) * 1.98
-      const formatDeltaISA = (t: string, elev?: number) => {
-        if (!t || elev === undefined) return ''
-        const delta = Math.round(parseFloat(t) - isaTemp(elev))
-        return delta >= 0 ? `ISA+${delta}` : `ISA${delta}`
-      }
-      sectionTitle('TRIP PLANNING')
-      const points: { label: string; elevation?: number; temp: string; qnh: string }[] = [
-        ...(td.from ? [td.from] : []),
-        ...td.waypoints,
-        ...(td.to ? [td.to] : []),
-      ]
-      points.forEach((pt, i) => {
-        const disa = formatDeltaISA(pt.temp, pt.elevation)
-        const elev = pt.elevation !== undefined ? `${pt.elevation} ft` : ''
-        const weather = [
-          pt.temp ? `${pt.temp}°C` : '',
-          pt.qnh ? `${pt.qnh} hPa` : '',
-          disa,
-        ].filter(Boolean).join('  ')
-        const valueStr = [elev, weather].filter(Boolean).join('  ·  ')
-        row(pt.label, valueStr || '--', i % 2 === 1)
-      })
-      y += 3
-    }
-
     // ── Footer p.1 ───────────────────────────────────────────────────
-    doc.setDrawColor(200, 206, 214)
-    doc.setLineWidth(0.3)
-    doc.line(8, H - 10, W - 8, H - 10)
-    doc.setTextColor(...SLATE)
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(6.5)
-    doc.text(
-      `Generated ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}  ·  For planning purposes only. Always verify with official POH.`,
-      W / 2, H - 5, { align: 'center' }
-    )
+    const drawFooter = () => {
+      doc.setDrawColor(200, 206, 214)
+      doc.setLineWidth(0.3)
+      doc.line(8, H - 10, W - 8, H - 10)
+      doc.setTextColor(...SLATE)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(6.5)
+      doc.text(
+        `Generated ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}  ·  For planning purposes only`,
+        W / 2, H - 5, { align: 'center' }
+      )
+    }
+    drawFooter()
 
     // ══════════════════════════════════════════════════════════════════
-    // ── Page 2 : Route Map + CG Envelope + Performance + Key Speeds ──
+    // ── Page 2 : Route Map + CG Envelope + Trip Planning + Perf + Speeds
     // ══════════════════════════════════════════════════════════════════
     doc.addPage()
 
-    // Mini header
-    doc.setFillColor(250, 251, 252)
-    doc.setDrawColor(180, 190, 200)
-    doc.setLineWidth(0.3)
-    doc.rect(0, 0, W, 8, 'FD')
-    doc.setTextColor(...DARK)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(7)
-    doc.text(`${selectedAircraft}  —  Pilot Briefing  ·  p.2`, W / 2, 5.5, { align: 'center' })
+    // Mini header for page 2+
+    const addPageHeader = (label: string) => {
+      doc.setFillColor(250, 251, 252)
+      doc.setDrawColor(180, 190, 200)
+      doc.setLineWidth(0.3)
+      doc.rect(0, 0, W, 8, 'FD')
+      doc.setTextColor(...DARK)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(7)
+      doc.text(`${selectedAircraft}  —  Pilot Briefing  ·  ${label}`, W / 2, 5.5, { align: 'center' })
+      y = 13
+    }
+    addPageHeader('p.2')
 
-    y = 12
+    // Override ensureSpace to add header on new pages
+    const ensureSpaceP2 = (needed: number) => {
+      if (y + needed > H - 14) {
+        drawFooter()
+        doc.addPage()
+        addPageHeader('(suite)')
+      }
+    }
 
     // ── Route Map ────────────────────────────────────────────────────
     const routePoints = [
@@ -276,16 +260,15 @@ export default function Index() {
         if (imgData) {
           sectionTitle('ROUTE MAP')
           const mapW = W - 16
-          const mapH = Math.round(mapW * 0.55)   // ~55% aspect ratio
+          const mapH = Math.round(mapW * 0.55)
           doc.addImage(imgData, 'JPEG', 8, y, mapW, mapH)
           y += mapH + 6
         }
-      } catch {
-        // map render failed, skip
-      }
+      } catch { /* skip */ }
     }
 
-    // ── Section title helper (same closure, now draws on page 2) ─────
+    // ── CG Envelope ──────────────────────────────────────────────────
+    ensureSpaceP2(80)   // 12 title + 52 chart + 16 legend
     sectionTitle('CG ENVELOPE')
 
     // ── Chart setup ──────────────────────────────────────────────────
@@ -441,7 +424,34 @@ export default function Index() {
     }
     y += 10
 
+    // ── Trip Planning ─────────────────────────────────────────────────
+    const td = tripDataRef.current
+    const hasTrip = td.from || td.to || td.waypoints.length > 0
+    if (hasTrip) {
+      const isaTemp2 = (elevFt: number) => 15 - (elevFt / 1000) * 1.98
+      const fmtDeltaISA = (t: string, elev?: number) => {
+        if (!t || elev === undefined) return ''
+        const delta = Math.round(parseFloat(t) - isaTemp2(elev))
+        return delta >= 0 ? `ISA+${delta}` : `ISA${delta}`
+      }
+      const tripPoints = [
+        ...(td.from ? [td.from] : []),
+        ...td.waypoints,
+        ...(td.to ? [td.to] : []),
+      ]
+      ensureSpaceP2(12 + tripPoints.length * 7 + 3)
+      sectionTitle('TRIP PLANNING')
+      tripPoints.forEach((pt, i) => {
+        const disa = fmtDeltaISA(pt.temp, pt.elevation)
+        const elev = pt.elevation !== undefined ? `${pt.elevation} ft` : ''
+        const weather = [pt.temp ? `${pt.temp}°C` : '', pt.qnh ? `${pt.qnh} hPa` : '', disa].filter(Boolean).join('  ')
+        row(pt.label, [elev, weather].filter(Boolean).join('  ·  ') || '--', i % 2 === 1)
+      })
+      y += 3
+    }
+
     // ── Performance ──────────────────────────────────────────────────
+    ensureSpaceP2(60)   // 12 title + 6×7 rows = 54mm
     const perf = perfDataRef.current
     sectionTitle('PERFORMANCE  (Density Altitude)')
     row('Airport Altitude', `${perf.altitude.toLocaleString()} ft`, false)
@@ -453,7 +463,7 @@ export default function Index() {
     y += 3
 
     // ── Key Speeds ───────────────────────────────────────────────────
-    ensureSpace(75)   // 7 rows × ~7mm + section title ~12mm + margin
+    ensureSpaceP2(75)   // 7 rows × ~7mm + section title ~12mm + margin
     sectionTitle('KEY SPEEDS  (mph)')
     const s = aircraftConfig.speeds
     row('Rotate (Vr)',            `${s.rotate} mph`,      false)
@@ -464,17 +474,8 @@ export default function Index() {
     row('Stall Clean (Vs)',       `${s.stallClean} mph`,  true)
     row('Stall Flaps Full (Vs0)', `${s.stallFlaps40} mph`, false)
 
-    // Footer page 2
-    doc.setDrawColor(200, 206, 214)
-    doc.setLineWidth(0.3)
-    doc.line(8, H - 10, W - 8, H - 10)
-    doc.setTextColor(...SLATE)
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(6.5)
-    doc.text(
-      `Generated ${new Date().toLocaleDateString()} · For planning purposes only. Always verify with official POH.`,
-      W / 2, H - 5, { align: 'center' }
-    )
+    // Footer last page
+    drawFooter()
 
     const dateStr = (flightDate || 'unknown').replace(/-/g, '')
     doc.save(`briefing-${selectedAircraft}-${dateStr}.pdf`)
