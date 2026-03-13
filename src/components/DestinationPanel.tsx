@@ -173,6 +173,21 @@ function WaypointSearch({ onSelect }: { onSelect: (r: SearchResult) => void }) {
   )
 }
 
+// ── Trip data exported for PDF ────────────────────────────────────────────────
+
+export interface TripPointData {
+  label: string
+  elevation?: number
+  temp: string
+  qnh: string
+}
+
+export interface TripPlanningData {
+  from?: TripPointData
+  waypoints: (TripPointData & { lat: number; lng: number })[]
+  to?: TripPointData
+}
+
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface DestinationPanelProps {
@@ -185,6 +200,7 @@ interface DestinationPanelProps {
   setRouteFrom: (icao: string) => void
   routeTo: string
   setRouteTo: (icao: string) => void
+  onTripDataChange?: (data: TripPlanningData) => void
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -199,6 +215,7 @@ export function DestinationPanel({
   setRouteFrom,
   routeTo,
   setRouteTo,
+  onTripDataChange,
 }: DestinationPanelProps) {
   const [manualDistance, setManualDistance] = useState<string>('')
   const [waypoints, setWaypoints] = useState<WaypointItem[]>([])
@@ -209,6 +226,16 @@ export function DestinationPanel({
 
   const fromAerodrome = routeFrom ? getAerodromeByIcao(routeFrom) : undefined
   const toAerodrome = routeTo ? getAerodromeByIcao(routeTo) : undefined
+
+  // Expose trip data for PDF
+  useEffect(() => {
+    if (!onTripDataChange) return
+    onTripDataChange({
+      from: fromAerodrome ? { label: `${fromAerodrome.icao} – ${fromAerodrome.name}`, elevation: fromAerodrome.elevation, temp: fromTemp, qnh: fromQnh } : undefined,
+      waypoints: waypoints.map(wp => ({ label: wp.label, lat: wp.lat, lng: wp.lng, elevation: parseFloat(wp.elevation) || undefined, temp: wp.temp, qnh: wp.qnh })),
+      to: toAerodrome ? { label: `${toAerodrome.icao} – ${toAerodrome.name}`, elevation: toAerodrome.elevation, temp: toTemp, qnh: toQnh } : undefined,
+    })
+  }, [fromAerodrome, fromTemp, fromQnh, toAerodrome, toTemp, toQnh, waypoints, onTripDataChange])
 
   // All route coords in order
   const allCoords: [number, number][] = [

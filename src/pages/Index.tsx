@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { jsPDF } from 'jspdf'
 import html2canvas from 'html2canvas'
+import type { TripPlanningData } from '@/components/DestinationPanel'
 import { Weight, Target, Fuel, Scale, ClipboardList, Gauge, AlertTriangle, MapPin, BookOpen, Activity, Plane } from 'lucide-react'
 import { Header } from '@/components/Header'
 import { MassInputCard } from '@/components/MassInputCard'
@@ -58,6 +59,11 @@ export default function Index() {
     perfDataRef.current = data
   }, [])
 
+  const tripDataRef = useRef<TripPlanningData>({ from: undefined, waypoints: [], to: undefined })
+  const handleTripDataChange = useCallback((data: TripPlanningData) => {
+    tripDataRef.current = data
+  }, [])
+
   const generateBriefingPdf = async () => {
     const doc = new jsPDF({ unit: 'mm', format: 'a5' })
     const W = 148
@@ -94,7 +100,22 @@ export default function Index() {
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(7)
       doc.text(title, 11, y + 4.2)
-      y += 9
+      y += 12   // more breathing room between title and first row
+    }
+
+    const ensureSpace = (needed: number) => {
+      if (y + needed > H - 14) {
+        doc.addPage()
+        doc.setFillColor(250, 251, 252)
+        doc.setDrawColor(180, 190, 200)
+        doc.setLineWidth(0.3)
+        doc.rect(0, 0, W, 8, 'FD')
+        doc.setTextColor(...DARK)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(7)
+        doc.text(`${selectedAircraft}  —  Pilot Briefing  ·  (suite)`, W / 2, 5.5, { align: 'center' })
+        y = 13
+      }
     }
 
     const row = (label: string, value: string, shade = false) => {
@@ -184,6 +205,36 @@ export default function Index() {
     }
     y += 3
 
+    // ── Trip Planning ─────────────────────────────────────────────────
+    const td = tripDataRef.current
+    const hasTrip = td.from || td.to || td.waypoints.length > 0
+    if (hasTrip) {
+      const isaTemp = (elevFt: number) => 15 - (elevFt / 1000) * 1.98
+      const formatDeltaISA = (t: string, elev?: number) => {
+        if (!t || elev === undefined) return ''
+        const delta = Math.round(parseFloat(t) - isaTemp(elev))
+        return delta >= 0 ? `ISA+${delta}` : `ISA${delta}`
+      }
+      sectionTitle('TRIP PLANNING')
+      const points: { label: string; elevation?: number; temp: string; qnh: string }[] = [
+        ...(td.from ? [td.from] : []),
+        ...td.waypoints,
+        ...(td.to ? [td.to] : []),
+      ]
+      points.forEach((pt, i) => {
+        const disa = formatDeltaISA(pt.temp, pt.elevation)
+        const elev = pt.elevation !== undefined ? `${pt.elevation} ft` : ''
+        const weather = [
+          pt.temp ? `${pt.temp}°C` : '',
+          pt.qnh ? `${pt.qnh} hPa` : '',
+          disa,
+        ].filter(Boolean).join('  ')
+        const valueStr = [elev, weather].filter(Boolean).join('  ·  ')
+        row(pt.label, valueStr || '--', i % 2 === 1)
+      })
+      y += 3
+    }
+
     // ── Footer p.1 ───────────────────────────────────────────────────
     doc.setDrawColor(200, 206, 214)
     doc.setLineWidth(0.3)
@@ -218,7 +269,7 @@ export default function Index() {
     if (leafletEl) {
       sectionTitle('ROUTE MAP')
       try {
-        const canvas = await html2canvas(leafletEl, { useCORS: true, scale: 1.5, logging: false })
+        const canvas = await html2canvas(leafletEl, { useCORS: true, allowTaint: true, scale: 1.5, logging: false })
         const imgData = canvas.toDataURL('image/jpeg', 0.85)
         const mapW = W - 16
         const mapH = Math.min((canvas.height / canvas.width) * mapW, 60)
@@ -242,7 +293,7 @@ export default function Index() {
     const wMin = Math.floor(Math.min(...wVals) - 200)
     const wMax = Math.ceil(Math.max(...wVals) + 200)
 
-    const chartH = 78
+    const chartH = 52
     const cy2 = y
     const pL = 17, pR = 5, pT = 4, pB = 10
     const iL = 8 + pL
@@ -398,6 +449,7 @@ export default function Index() {
     y += 3
 
     // ── Key Speeds ───────────────────────────────────────────────────
+    ensureSpace(75)   // 7 rows × ~7mm + section title ~12mm + margin
     sectionTitle('KEY SPEEDS  (mph)')
     const s = aircraftConfig.speeds
     row('Rotate (Vr)',            `${s.rotate} mph`,      false)
@@ -528,6 +580,7 @@ export default function Index() {
               setRouteFrom={setRouteFrom}
               routeTo={routeTo}
               setRouteTo={setRouteTo}
+              onTripDataChange={handleTripDataChange}
             />
 
             <MassSummaryCard
@@ -681,6 +734,7 @@ export default function Index() {
               setRouteFrom={setRouteFrom}
               routeTo={routeTo}
               setRouteTo={setRouteTo}
+              onTripDataChange={handleTripDataChange}
             />
           </CollapsibleSection>
 
