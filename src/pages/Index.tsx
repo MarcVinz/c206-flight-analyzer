@@ -725,7 +725,7 @@ export default function Index() {
       </main>
 
       {/* Footer */}
-      <footer className="py-2 sm:py-3 mt-6 sm:mt-8 no-print">
+      <footer className="py-2 sm:py-3 mt-3 sm:mt-4 no-print">
         <div className="container mx-auto px-3 sm:px-4 text-center text-[10px] sm:text-xs text-muted-foreground">
           <p>For flight planning purposes only. Always verify with official POH.</p>
           <p className="mt-1">&copy; 2026 Marc Vincent</p>
