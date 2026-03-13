@@ -15,7 +15,7 @@ export function Header({ onPrint }: HeaderProps) {
             <img
               src="/logo.png"
               alt="Africa Bushpilot"
-              className="h-10 w-10 sm:h-14 sm:w-14 rounded-full"
+              className="h-12 w-12 sm:h-14 sm:w-14 rounded-full"
             />
             <div>
               <h1 className="text-base sm:text-xl font-bold text-foreground">Flight Analyzer</h1>
