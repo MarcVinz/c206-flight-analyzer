@@ -596,9 +596,9 @@ export default function Index() {
               remainingPayload={remainingPayload}
             />
 
-            <SpeedsPanel speeds={aircraftConfig.speeds} />
-
             <PerformancePanel onDataChange={handlePerfDataChange} />
+
+            <SpeedsPanel speeds={aircraftConfig.speeds} />
           </div>
 
           {/* Column 3: Checklists, Limits & LogBook */}
@@ -766,19 +766,19 @@ export default function Index() {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Speeds"
-            icon={<Gauge className="h-5 w-5" />}
-            defaultOpen={false}
-          >
-            <SpeedsPanel speeds={aircraftConfig.speeds} />
-          </CollapsibleSection>
-
-          <CollapsibleSection
             title="Performance"
             icon={<Activity className="h-5 w-5" />}
             defaultOpen={false}
           >
             <PerformancePanel onDataChange={handlePerfDataChange} />
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Speeds"
+            icon={<Gauge className="h-5 w-5" />}
+            defaultOpen={false}
+          >
+            <SpeedsPanel speeds={aircraftConfig.speeds} />
           </CollapsibleSection>
 
           <CollapsibleSection
