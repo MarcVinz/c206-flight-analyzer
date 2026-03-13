@@ -19,7 +19,7 @@ export function Header({ onPrint }: HeaderProps) {
             />
             <div>
               <h1 className="text-base sm:text-xl font-bold text-foreground">Flight Analyzer</h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">Africa Bushpilot Adventures</p>
+              <p className="text-xs text-muted-foreground">Africa Bushpilot Adventures</p>
             </div>
           </div>
 
