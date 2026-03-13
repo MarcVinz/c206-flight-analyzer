@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
 import { jsPDF } from 'jspdf'
+import html2canvas from 'html2canvas'
 import { Weight, Target, Fuel, Scale, ClipboardList, Gauge, AlertTriangle, MapPin, BookOpen, Activity, Plane } from 'lucide-react'
 import { Header } from '@/components/Header'
 import { MassInputCard } from '@/components/MassInputCard'
@@ -57,34 +58,39 @@ export default function Index() {
     perfDataRef.current = data
   }, [])
 
-  const generateBriefingPdf = () => {
+  const generateBriefingPdf = async () => {
     const doc = new jsPDF({ unit: 'mm', format: 'a5' })
     const W = 148
     const H = doc.internal.pageSize.getHeight()
 
-    const GREEN:  [number,number,number] = [26, 47, 36]
-    const LIGHT:  [number,number,number] = [241, 245, 249]
     const SLATE:  [number,number,number] = [100, 116, 139]
     const DARK:   [number,number,number] = [15, 23, 42]
     const WHITE:  [number,number,number] = [255, 255, 255]
+    const SECT_BG: [number,number,number] = [235, 238, 242]   // light gray — ink-friendly
+    const LIGHT:  [number,number,number] = [247, 249, 251]
 
     // ── Header ──────────────────────────────────────────────────────
-    doc.setFillColor(...GREEN)
-    doc.rect(0, 0, W, 22, 'F')
-    doc.setTextColor(...WHITE)
+    doc.setDrawColor(180, 190, 200)
+    doc.setLineWidth(0.3)
+    doc.setFillColor(250, 251, 252)
+    doc.rect(0, 0, W, 20, 'FD')
+    doc.setTextColor(...DARK)
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(14)
-    doc.text(`${selectedAircraft}  ·  Pilot Briefing`, W / 2, 10, { align: 'center' })
+    doc.setFontSize(13)
+    doc.text(`${selectedAircraft}  ·  Pilot Briefing`, W / 2, 9, { align: 'center' })
     doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8)
-    doc.text(`${aircraftConfig.model}  ·  ${aircraftConfig.engine.model}  ·  ${aircraftConfig.engine.hp} HP`, W / 2, 17, { align: 'center' })
+    doc.setFontSize(7.5)
+    doc.setTextColor(...SLATE)
+    doc.text(`${aircraftConfig.model}  ·  ${aircraftConfig.engine.model}  ·  ${aircraftConfig.engine.hp} HP`, W / 2, 16, { align: 'center' })
 
-    let y = 25
+    let y = 24
 
     const sectionTitle = (title: string) => {
-      doc.setFillColor(...GREEN)
-      doc.rect(8, y, W - 16, 6, 'F')
-      doc.setTextColor(...WHITE)
+      doc.setFillColor(...SECT_BG)
+      doc.setDrawColor(200, 206, 214)
+      doc.setLineWidth(0.2)
+      doc.rect(8, y, W - 16, 6, 'FD')
+      doc.setTextColor(...DARK)
       doc.setFont('helvetica', 'bold')
       doc.setFontSize(7)
       doc.text(title, 11, y + 4.2)
@@ -131,7 +137,7 @@ export default function Index() {
       row('Route', route, false)
     }
     if (tripDistance > 0) {
-      row('Trip Distance', `${tripDistance} nm`, !!(routeFrom || routeTo))
+      row('Trip Distance', `${tripDistance} NM`, !!(routeFrom || routeTo))
     }
     y += 3
 
@@ -178,20 +184,10 @@ export default function Index() {
     }
     y += 3
 
-    // ── Key Speeds ───────────────────────────────────────────────────
-    sectionTitle('KEY SPEEDS  (mph)')
-    const s = aircraftConfig.speeds
-    row('Rotate (Vr)',          `${s.rotate} mph`,      false)
-    row('Best Angle (Vx)',      `${s.bestAngle} mph`,   true)
-    row('Best Rate (Vy)',       `${s.bestRate} mph`,    false)
-    row('Manoeuvring (Va)',     `${s.manoeuvring} mph`, true)
-    row('Never Exceed (Vne)',   `${s.neverExceed} mph`, false)
-    row('Stall Clean (Vs)',     `${s.stallClean} mph`,  true)
-    row('Stall Flaps Full (Vs0)', `${s.stallFlaps40} mph`, false)
-
-    // ── Footer ───────────────────────────────────────────────────────
-    doc.setFillColor(...LIGHT)
-    doc.rect(0, H - 12, W, 12, 'F')
+    // ── Footer p.1 ───────────────────────────────────────────────────
+    doc.setDrawColor(200, 206, 214)
+    doc.setLineWidth(0.3)
+    doc.line(8, H - 10, W - 8, H - 10)
     doc.setTextColor(...SLATE)
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(6.5)
@@ -201,19 +197,38 @@ export default function Index() {
     )
 
     // ══════════════════════════════════════════════════════════════════
-    // ── Page 2 : CG Envelope + Performance ───────────────────────────
+    // ── Page 2 : Route Map + CG Envelope + Performance + Key Speeds ──
     // ══════════════════════════════════════════════════════════════════
     doc.addPage()
 
     // Mini header
-    doc.setFillColor(...GREEN)
-    doc.rect(0, 0, W, 8, 'F')
-    doc.setTextColor(...WHITE)
+    doc.setFillColor(250, 251, 252)
+    doc.setDrawColor(180, 190, 200)
+    doc.setLineWidth(0.3)
+    doc.rect(0, 0, W, 8, 'FD')
+    doc.setTextColor(...DARK)
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(7)
     doc.text(`${selectedAircraft}  —  Pilot Briefing  ·  p.2`, W / 2, 5.5, { align: 'center' })
 
     y = 12
+
+    // ── Route Map ────────────────────────────────────────────────────
+    const leafletEl = document.querySelector('.leaflet-container') as HTMLElement | null
+    if (leafletEl) {
+      sectionTitle('ROUTE MAP')
+      try {
+        const canvas = await html2canvas(leafletEl, { useCORS: true, scale: 1.5, logging: false })
+        const imgData = canvas.toDataURL('image/jpeg', 0.85)
+        const mapW = W - 16
+        const mapH = Math.min((canvas.height / canvas.width) * mapW, 60)
+        doc.addImage(imgData, 'JPEG', 8, y, mapW, mapH)
+        y += mapH + 6
+      } catch {
+        // map capture failed, skip
+        y += 3
+      }
+    }
 
     // ── Section title helper (same closure, now draws on page 2) ─────
     sectionTitle('CG ENVELOPE')
@@ -380,10 +395,23 @@ export default function Index() {
     row('Pressure Altitude', `${perf.pressureAltitude.toLocaleString()} ft`, true)
     row('Density Altitude', `${perf.densityAltitude.toLocaleString()} ft`, false)
     row('ISA Deviation', `${perf.isaDeviation > 0 ? '+' : ''}${perf.isaDeviation}°C`, true)
+    y += 3
+
+    // ── Key Speeds ───────────────────────────────────────────────────
+    sectionTitle('KEY SPEEDS  (mph)')
+    const s = aircraftConfig.speeds
+    row('Rotate (Vr)',            `${s.rotate} mph`,      false)
+    row('Best Angle (Vx)',        `${s.bestAngle} mph`,   true)
+    row('Best Rate (Vy)',         `${s.bestRate} mph`,    false)
+    row('Manoeuvring (Va)',       `${s.manoeuvring} mph`, true)
+    row('Never Exceed (Vne)',     `${s.neverExceed} mph`, false)
+    row('Stall Clean (Vs)',       `${s.stallClean} mph`,  true)
+    row('Stall Flaps Full (Vs0)', `${s.stallFlaps40} mph`, false)
 
     // Footer page 2
-    doc.setFillColor(...LIGHT)
-    doc.rect(0, H - 12, W, 12, 'F')
+    doc.setDrawColor(200, 206, 214)
+    doc.setLineWidth(0.3)
+    doc.line(8, H - 10, W - 8, H - 10)
     doc.setTextColor(...SLATE)
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(6.5)
