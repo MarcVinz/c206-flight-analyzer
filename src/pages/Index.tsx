@@ -248,25 +248,6 @@ export default function Index() {
       }
     }
 
-    // ── Route Map ────────────────────────────────────────────────────
-    const routePoints = [
-      ...(tripDataRef.current.from ? [{ lat: tripDataRef.current.from.lat, lng: tripDataRef.current.from.lng }] : []),
-      ...tripDataRef.current.waypoints.map(wp => ({ lat: wp.lat, lng: wp.lng })),
-      ...(tripDataRef.current.to ? [{ lat: tripDataRef.current.to.lat, lng: tripDataRef.current.to.lng }] : []),
-    ]
-    if (routePoints.length >= 2) {
-      try {
-        const imgData = await renderRouteMap(routePoints, 800)
-        if (imgData) {
-          sectionTitle('ROUTE MAP')
-          const mapW = W - 16
-          const mapH = Math.round(mapW * 0.55)
-          doc.addImage(imgData, 'JPEG', 8, y, mapW, mapH)
-          y += mapH + 6
-        }
-      } catch { /* skip */ }
-    }
-
     // ── CG Envelope ──────────────────────────────────────────────────
     ensureSpaceP2(80)   // 12 title + 52 chart + 16 legend
     sectionTitle('CG ENVELOPE')
@@ -423,6 +404,26 @@ export default function Index() {
       doc.text('LDG', 69, y + 1)
     }
     y += 10
+
+    // ── Route Map ────────────────────────────────────────────────────
+    const routePoints = [
+      ...(tripDataRef.current.from ? [{ lat: tripDataRef.current.from.lat, lng: tripDataRef.current.from.lng }] : []),
+      ...tripDataRef.current.waypoints.map(wp => ({ lat: wp.lat, lng: wp.lng })),
+      ...(tripDataRef.current.to ? [{ lat: tripDataRef.current.to.lat, lng: tripDataRef.current.to.lng }] : []),
+    ]
+    if (routePoints.length >= 2) {
+      try {
+        const imgData = await renderRouteMap(routePoints, 800)
+        if (imgData) {
+          const mapW = W - 16
+          const mapH = Math.round(mapW * 0.55)
+          ensureSpaceP2(mapH + 18)
+          sectionTitle('ROUTE MAP')
+          doc.addImage(imgData, 'JPEG', 8, y, mapW, mapH)
+          y += mapH + 6
+        }
+      } catch { /* skip */ }
+    }
 
     // ── Trip Planning ─────────────────────────────────────────────────
     const td = tripDataRef.current
