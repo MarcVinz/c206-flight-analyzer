@@ -267,17 +267,24 @@ export default function Index() {
     // ── Route Map ────────────────────────────────────────────────────
     const leafletEl = document.querySelector('.leaflet-container') as HTMLElement | null
     if (leafletEl) {
-      sectionTitle('ROUTE MAP')
+      // Wait for tiles to be fully loaded
+      await new Promise(resolve => setTimeout(resolve, 800))
       try {
-        const canvas = await html2canvas(leafletEl, { useCORS: true, allowTaint: true, scale: 1.5, logging: false })
+        const canvas = await html2canvas(leafletEl, {
+          useCORS: true,
+          allowTaint: false,
+          scale: 1,
+          logging: false,
+          imageTimeout: 10000,
+        })
         const imgData = canvas.toDataURL('image/jpeg', 0.85)
+        sectionTitle('ROUTE MAP')
         const mapW = W - 16
-        const mapH = Math.min((canvas.height / canvas.width) * mapW, 60)
+        const mapH = Math.min((canvas.height / canvas.width) * mapW, 58)
         doc.addImage(imgData, 'JPEG', 8, y, mapW, mapH)
         y += mapH + 6
       } catch {
-        // map capture failed, skip
-        y += 3
+        // map capture failed silently, skip section
       }
     }
 

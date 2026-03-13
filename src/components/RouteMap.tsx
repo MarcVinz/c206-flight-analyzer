@@ -158,7 +158,7 @@ export function RouteMap({ fromAerodrome, toAerodrome, waypointCoords = [], dist
       zoomControl={true}
       attributionControl={false}
     >
-      <TileLayer url={isSatellite ? TILE_SAT : TILE_OSM} />
+      <TileLayer url={isSatellite ? TILE_SAT : TILE_OSM} crossOrigin="anonymous" />
 
       {fromCoords && <Marker position={fromCoords} icon={departureIcon} />}
       {waypointCoords.map((pos, i) => (
