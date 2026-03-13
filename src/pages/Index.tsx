@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { jsPDF } from 'jspdf'
-import html2canvas from 'html2canvas'
 import type { TripPlanningData } from '@/components/DestinationPanel'
+import { renderRouteMap } from '@/lib/renderRouteMap'
 import { Weight, Target, Fuel, Scale, ClipboardList, Gauge, AlertTriangle, MapPin, BookOpen, Activity, Plane } from 'lucide-react'
 import { Header } from '@/components/Header'
 import { MassInputCard } from '@/components/MassInputCard'
@@ -265,26 +265,23 @@ export default function Index() {
     y = 12
 
     // ── Route Map ────────────────────────────────────────────────────
-    const leafletEl = document.querySelector('.leaflet-container') as HTMLElement | null
-    if (leafletEl) {
-      // Wait for tiles to be fully loaded
-      await new Promise(resolve => setTimeout(resolve, 800))
+    const routePoints = [
+      ...(tripDataRef.current.from ? [{ lat: tripDataRef.current.from.lat, lng: tripDataRef.current.from.lng }] : []),
+      ...tripDataRef.current.waypoints.map(wp => ({ lat: wp.lat, lng: wp.lng })),
+      ...(tripDataRef.current.to ? [{ lat: tripDataRef.current.to.lat, lng: tripDataRef.current.to.lng }] : []),
+    ]
+    if (routePoints.length >= 2) {
       try {
-        const canvas = await html2canvas(leafletEl, {
-          useCORS: true,
-          allowTaint: false,
-          scale: 1,
-          logging: false,
-          imageTimeout: 10000,
-        })
-        const imgData = canvas.toDataURL('image/jpeg', 0.85)
-        sectionTitle('ROUTE MAP')
-        const mapW = W - 16
-        const mapH = Math.min((canvas.height / canvas.width) * mapW, 58)
-        doc.addImage(imgData, 'JPEG', 8, y, mapW, mapH)
-        y += mapH + 6
+        const imgData = await renderRouteMap(routePoints, 800)
+        if (imgData) {
+          sectionTitle('ROUTE MAP')
+          const mapW = W - 16
+          const mapH = Math.round(mapW * 0.55)   // ~55% aspect ratio
+          doc.addImage(imgData, 'JPEG', 8, y, mapW, mapH)
+          y += mapH + 6
+        }
       } catch {
-        // map capture failed silently, skip section
+        // map render failed, skip
       }
     }
 

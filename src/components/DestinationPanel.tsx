@@ -177,6 +177,8 @@ function WaypointSearch({ onSelect }: { onSelect: (r: SearchResult) => void }) {
 
 export interface TripPointData {
   label: string
+  lat: number
+  lng: number
   elevation?: number
   temp: string
   qnh: string
@@ -184,7 +186,7 @@ export interface TripPointData {
 
 export interface TripPlanningData {
   from?: TripPointData
-  waypoints: (TripPointData & { lat: number; lng: number })[]
+  waypoints: TripPointData[]
   to?: TripPointData
 }
 
@@ -230,10 +232,12 @@ export function DestinationPanel({
   // Expose trip data for PDF
   useEffect(() => {
     if (!onTripDataChange) return
+    const fromCoords = fromAerodrome ? aerodromeCoords(fromAerodrome) : null
+    const toCoords = toAerodrome ? aerodromeCoords(toAerodrome) : null
     onTripDataChange({
-      from: fromAerodrome ? { label: `${fromAerodrome.icao} – ${fromAerodrome.name}`, elevation: fromAerodrome.elevation, temp: fromTemp, qnh: fromQnh } : undefined,
+      from: fromAerodrome && fromCoords ? { label: `${fromAerodrome.icao} – ${fromAerodrome.name}`, lat: fromCoords[0], lng: fromCoords[1], elevation: fromAerodrome.elevation, temp: fromTemp, qnh: fromQnh } : undefined,
       waypoints: waypoints.map(wp => ({ label: wp.label, lat: wp.lat, lng: wp.lng, elevation: parseFloat(wp.elevation) || undefined, temp: wp.temp, qnh: wp.qnh })),
-      to: toAerodrome ? { label: `${toAerodrome.icao} – ${toAerodrome.name}`, elevation: toAerodrome.elevation, temp: toTemp, qnh: toQnh } : undefined,
+      to: toAerodrome && toCoords ? { label: `${toAerodrome.icao} – ${toAerodrome.name}`, lat: toCoords[0], lng: toCoords[1], elevation: toAerodrome.elevation, temp: toTemp, qnh: toQnh } : undefined,
     })
   }, [fromAerodrome, fromTemp, fromQnh, toAerodrome, toTemp, toQnh, waypoints, onTripDataChange])
 
