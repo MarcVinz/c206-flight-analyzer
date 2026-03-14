@@ -2,9 +2,8 @@ import { useState, useEffect } from 'react'
 import { Lock, Plane } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { useLanguage } from '@/contexts/LanguageContext'
 
-// Simple hash function for client-side password verification
-// Note: This is NOT cryptographically secure, just basic access control
 function simpleHash(str: string): string {
   let hash = 0
   for (let i = 0; i < str.length; i++) {
@@ -15,8 +14,6 @@ function simpleHash(str: string): string {
   return hash.toString(36)
 }
 
-// Password hash - change the password by updating this hash
-// Current password: "bushpilot"
 const PASSWORD_HASH = simpleHash('bushpilot')
 const STORAGE_KEY = 'c206-auth'
 
@@ -25,13 +22,13 @@ interface PasswordGateProps {
 }
 
 export function PasswordGate({ children }: PasswordGateProps) {
+  const { t } = useLanguage()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [password, setPassword] = useState('')
   const [error, setError] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check if already authenticated
     const storedAuth = localStorage.getItem(STORAGE_KEY)
     if (storedAuth === PASSWORD_HASH) {
       setIsAuthenticated(true)
@@ -42,7 +39,6 @@ export function PasswordGate({ children }: PasswordGateProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     const inputHash = simpleHash(password)
-
     if (inputHash === PASSWORD_HASH) {
       localStorage.setItem(STORAGE_KEY, PASSWORD_HASH)
       setIsAuthenticated(true)
@@ -84,7 +80,7 @@ export function PasswordGate({ children }: PasswordGateProps) {
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 type="password"
-                placeholder="Enter password"
+                placeholder={t('enterPassword')}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value)
@@ -96,18 +92,18 @@ export function PasswordGate({ children }: PasswordGateProps) {
             </div>
             {error && (
               <p className="text-sm text-aviation-red mt-2">
-                Incorrect password
+                {t('incorrectPassword')}
               </p>
             )}
           </div>
 
           <Button type="submit" className="w-full">
-            Access Application
+            {t('accessApplication')}
           </Button>
         </form>
 
         <p className="text-xs text-muted-foreground text-center mt-6">
-          Contact administrator for access
+          {t('contactAdmin')}
         </p>
       </div>
     </div>

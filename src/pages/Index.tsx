@@ -4,6 +4,7 @@ import type { TripPlanningData } from '@/components/DestinationPanel'
 import { renderRouteMap } from '@/lib/renderRouteMap'
 import { Weight, Target, Fuel, Scale, ClipboardList, Gauge, AlertTriangle, MapPin, BookOpen, Activity, Plane } from 'lucide-react'
 import { Header } from '@/components/Header'
+import { useLanguage } from '@/contexts/LanguageContext'
 import { MassInputCard } from '@/components/MassInputCard'
 import { FuelPanel } from '@/components/FuelPanel'
 import { CGEnvelope } from '@/components/CGEnvelope'
@@ -13,7 +14,7 @@ import { LimitationsPanel } from '@/components/LimitationsPanel'
 import { DestinationPanel } from '@/components/DestinationPanel'
 import { ChecklistPanel } from '@/components/ChecklistPanel'
 import { LogBookPanel } from '@/components/LogBookPanel'
-import { PerformancePanel, type PerfData } from '@/components/PerformancePanel'
+import { PerformancePanel, type PerfData, type PerfAutoFill } from '@/components/PerformancePanel'
 import { CollapsibleSection } from '@/components/CollapsibleSection'
 import { FlightInfoPanel } from '@/components/FlightInfoPanel'
 import { useWeightBalance } from '@/hooks/useWeightBalance'
@@ -21,6 +22,7 @@ import { isC182, getCGEnvelopeForAircraft } from '@/types/aircraft'
 import { getSunTimes, formatSunTime } from '@/lib/sunCalc'
 
 export default function Index() {
+  const { t } = useLanguage()
   const [pilotName, setPilotName] = useState('')
   const [flightDate, setFlightDate] = useState(
     new Date().toISOString().split('T')[0]
@@ -60,8 +62,19 @@ export default function Index() {
   }, [])
 
   const tripDataRef = useRef<TripPlanningData>({ from: undefined, waypoints: [], to: undefined })
+  const [depAutoFill, setDepAutoFill] = useState<PerfAutoFill>({})
   const handleTripDataChange = useCallback((data: TripPlanningData) => {
     tripDataRef.current = data
+    const from = data.from
+    if (from) {
+      const fill: PerfAutoFill = {}
+      if (from.elevation !== undefined) fill.altitude = from.elevation
+      const qnh = parseInt(from.qnh)
+      if (!isNaN(qnh) && qnh > 0) fill.qnh = qnh
+      const oat = parseInt(from.temp)
+      if (!isNaN(oat)) fill.oat = oat
+      setDepAutoFill(fill)
+    }
   }, [])
 
   const generateBriefingPdf = async () => {
@@ -507,13 +520,13 @@ export default function Index() {
             <div className="aviation-card p-5">
               <div className="flex items-center gap-2 mb-4">
                 <Weight className="h-5 w-5 text-primary" />
-                <h3 className="text-lg font-semibold">Payload</h3>
+                <h3 className="text-lg font-semibold">{t('payloadTitle')}</h3>
               </div>
               <div className="space-y-4">
                 {/* Front Row */}
                 <div>
                   <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                    Front Row (Arm {massItems.find(i => i.id === 'pilot')?.arm || 36}")
+                    {t('frontRow')} (Arm {massItems.find(i => i.id === 'pilot')?.arm || 36}")
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     {massItems.filter(i => ['pilot', 'front_pax'].includes(i.id)).map((item) => (
@@ -524,7 +537,7 @@ export default function Index() {
                 {/* Second Row (Rear Row for C182) */}
                 <div>
                   <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                    {isC182(selectedAircraft) ? 'Rear Row' : 'Second Row'} (Arm {massItems.find(i => i.id === 'row2_left')?.arm || 69}")
+                    {isC182(selectedAircraft) ? t('rearRow') : t('secondRow')} (Arm {massItems.find(i => i.id === 'row2_left')?.arm || 69}")
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     {massItems.filter(i => ['row2_left', 'row2_right'].includes(i.id)).map((item) => (
@@ -536,7 +549,7 @@ export default function Index() {
                 {!isC182(selectedAircraft) && (
                   <div>
                     <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                      Third Row (Arm {massItems.find(i => i.id === 'row3_left')?.arm || 100}")
+                      {t('thirdRow')} (Arm {massItems.find(i => i.id === 'row3_left')?.arm || 100}")
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       {massItems.filter(i => ['row3_left', 'row3_right'].includes(i.id)).map((item) => (
@@ -547,7 +560,7 @@ export default function Index() {
                 )}
                 {/* Baggage */}
                 <div>
-                  <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Baggage</div>
+                  <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2">{t('baggage')}</div>
                   <div className="space-y-2">
                     {massItems.filter(i => i.id.startsWith('baggage') || i.id === 'cargo_pod').map((item) => (
                       <MassInputCard key={item.id} item={item} onChange={updateMassItem} />
@@ -596,7 +609,7 @@ export default function Index() {
               remainingPayload={remainingPayload}
             />
 
-            <PerformancePanel onDataChange={handlePerfDataChange} />
+            <PerformancePanel onDataChange={handlePerfDataChange} autoFill={depAutoFill} />
 
             <SpeedsPanel speeds={aircraftConfig.speeds} />
           </div>
@@ -625,7 +638,7 @@ export default function Index() {
         {/* Mobile/Tablet: Collapsible sections */}
         <div className="lg:hidden space-y-3">
           <CollapsibleSection
-            title="Flight Info"
+            title={t('flightInfo')}
             icon={<Plane className="h-5 w-5" />}
             defaultOpen={false}
           >
@@ -645,7 +658,7 @@ export default function Index() {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Payload"
+            title={t('payload')}
             icon={<Weight className="h-5 w-5" />}
             defaultOpen={false}
           >
@@ -653,7 +666,7 @@ export default function Index() {
               {/* Front Row */}
               <div>
                 <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                  Front Row (Arm {massItems.find(i => i.id === 'pilot')?.arm || 36}")
+                  {t('frontRow')} (Arm {massItems.find(i => i.id === 'pilot')?.arm || 36}")
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {massItems.filter(i => ['pilot', 'front_pax'].includes(i.id)).map((item) => (
@@ -664,7 +677,7 @@ export default function Index() {
               {/* Second Row (Rear Row for C182) */}
               <div>
                 <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                  {isC182(selectedAircraft) ? 'Rear Row' : 'Second Row'} (Arm {massItems.find(i => i.id === 'row2_left')?.arm || 69}")
+                  {isC182(selectedAircraft) ? t('rearRow') : t('secondRow')} (Arm {massItems.find(i => i.id === 'row2_left')?.arm || 69}")
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {massItems.filter(i => ['row2_left', 'row2_right'].includes(i.id)).map((item) => (
@@ -676,7 +689,7 @@ export default function Index() {
               {!isC182(selectedAircraft) && (
                 <div>
                   <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2">
-                    Third Row (Arm {massItems.find(i => i.id === 'row3_left')?.arm || 100}")
+                    {t('thirdRow')} (Arm {massItems.find(i => i.id === 'row3_left')?.arm || 100}")
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     {massItems.filter(i => ['row3_left', 'row3_right'].includes(i.id)).map((item) => (
@@ -687,7 +700,7 @@ export default function Index() {
               )}
               {/* Baggage */}
               <div>
-                <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2">Baggage</div>
+                <div className="text-xs text-muted-foreground uppercase tracking-wide mb-2">{t('baggage')}</div>
                 <div className="space-y-2">
                   {massItems.filter(i => i.id.startsWith('baggage') || i.id === 'cargo_pod').map((item) => (
                     <MassInputCard key={item.id} item={item} onChange={updateMassItem} />
@@ -698,7 +711,7 @@ export default function Index() {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Fuel"
+            title={t('fuel')}
             icon={<Fuel className="h-5 w-5" />}
             defaultOpen={false}
           >
@@ -714,7 +727,7 @@ export default function Index() {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="CG Envelope"
+            title={t('cgEnvelope')}
             icon={<Target className="h-5 w-5" />}
             defaultOpen={false}
           >
@@ -726,7 +739,7 @@ export default function Index() {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Trip Planning"
+            title={t('tripPlanning')}
             icon={<MapPin className="h-5 w-5" />}
             defaultOpen={false}
           >
@@ -745,7 +758,7 @@ export default function Index() {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Weight Summary"
+            title={t('weightSummary')}
             icon={<Scale className="h-5 w-5" />}
             defaultOpen={false}
           >
@@ -758,7 +771,15 @@ export default function Index() {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Checklists"
+            title={t('performance')}
+            icon={<Activity className="h-5 w-5" />}
+            defaultOpen={false}
+          >
+            <PerformancePanel onDataChange={handlePerfDataChange} autoFill={depAutoFill} />
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title={t('checklists')}
             icon={<ClipboardList className="h-5 w-5" />}
             defaultOpen={false}
           >
@@ -766,15 +787,7 @@ export default function Index() {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Performance"
-            icon={<Activity className="h-5 w-5" />}
-            defaultOpen={false}
-          >
-            <PerformancePanel onDataChange={handlePerfDataChange} />
-          </CollapsibleSection>
-
-          <CollapsibleSection
-            title="Speeds"
+            title={t('speeds')}
             icon={<Gauge className="h-5 w-5" />}
             defaultOpen={false}
           >
@@ -782,7 +795,7 @@ export default function Index() {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Limitations"
+            title={t('limitations')}
             icon={<AlertTriangle className="h-5 w-5" />}
             defaultOpen={false}
           >
@@ -793,7 +806,7 @@ export default function Index() {
           </CollapsibleSection>
 
           <CollapsibleSection
-            title="Flight Log"
+            title={t('flightLog')}
             icon={<BookOpen className="h-5 w-5" />}
             defaultOpen={false}
           >
@@ -815,7 +828,7 @@ export default function Index() {
       {/* Footer */}
       <footer className="py-2 sm:py-3 mt-3 sm:mt-4 no-print">
         <div className="container mx-auto px-3 sm:px-4 text-center text-[10px] sm:text-xs text-muted-foreground">
-          <p>For flight planning purposes only. Always verify with official POH.</p>
+          <p>{t('footerDisclaimer')}</p>
           <p className="mt-1">&copy; 2026 Marc Vincent</p>
         </div>
       </footer>

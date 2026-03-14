@@ -1,9 +1,10 @@
-import { User, Users, Briefcase, Package } from 'lucide-react'
+import { User, Briefcase, Package } from 'lucide-react'
 import { Slider } from '@/components/ui/slider'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { MassItem } from '@/types/aircraft'
 import { lbsToKg } from '@/lib/utils'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface MassInputCardProps {
   item: MassItem
@@ -28,32 +29,30 @@ function getIcon(id: string) {
   }
 }
 
-// Check if item is a passenger (individual person)
 function isPassengerItem(id: string): boolean {
   return ['pilot', 'front_pax', 'row2_left', 'row2_right', 'row3_left', 'row3_right'].includes(id)
 }
 
-// Short label for compact display
-function getShortLabel(id: string): string {
-  switch (id) {
-    case 'pilot': return 'Pilot'
-    case 'front_pax': return 'Front Pax'
-    case 'row2_left': return 'Left'
-    case 'row2_right': return 'Right'
-    case 'row3_left': return 'Left'
-    case 'row3_right': return 'Right'
-    default: return ''
-  }
-}
-
 export function MassInputCard({ item, onChange }: MassInputCardProps) {
+  const { t } = useLanguage()
+
+  function getShortLabel(id: string): string {
+    switch (id) {
+      case 'pilot': return t('pilotSeat')
+      case 'front_pax': return t('frontPax')
+      case 'row2_left': return t('leftSeat')
+      case 'row2_right': return t('rightSeat')
+      case 'row3_left': return t('leftSeat')
+      case 'row3_right': return t('rightSeat')
+      default: return ''
+    }
+  }
   const moment = (item.mass * item.arm) / 1000
   const isOverMax = item.max !== undefined && item.mass > item.max
   const isOutOfRange = isOverMax
   const isCompact = isPassengerItem(item.id)
 
   if (isCompact) {
-    // Compact layout for individual passengers with slider
     return (
       <div
         className={`p-3 rounded-lg bg-secondary/50 border transition-all ${
@@ -76,7 +75,6 @@ export function MassInputCard({ item, onChange }: MassInputCardProps) {
           )}
         </div>
 
-        {/* Slider */}
         <Slider
           value={[item.mass]}
           onValueChange={([v]) => onChange(item.id, v)}
@@ -86,7 +84,6 @@ export function MassInputCard({ item, onChange }: MassInputCardProps) {
           className="mb-2"
         />
 
-        {/* Weight display and input */}
         <div className="flex items-center gap-2">
           <Input
             type="number"
@@ -132,7 +129,6 @@ export function MassInputCard({ item, onChange }: MassInputCardProps) {
         </span>
       </div>
 
-      {/* Dual input: Slider + Number Input */}
       <div className="flex items-center gap-3">
         <Slider
           value={[item.mass]}
@@ -157,14 +153,12 @@ export function MassInputCard({ item, onChange }: MassInputCardProps) {
         </div>
       </div>
 
-      {/* Kg equivalent */}
       {item.mass > 0 && (
         <div className="mt-1 text-xs text-muted-foreground text-right">
           = {lbsToKg(item.mass).toFixed(0)} kg
         </div>
       )}
 
-      {/* Display calculations and warnings */}
       <div className="mt-2 flex justify-between text-xs">
         <span
           className={
@@ -186,7 +180,7 @@ export function MassInputCard({ item, onChange }: MassInputCardProps) {
 
       {isOutOfRange && (
         <div className="mt-2 text-xs text-aviation-red font-semibold">
-          Warning: Exceeds maximum weight
+          {t('warningExceedsMax')}
         </div>
       )}
     </div>

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { getSunTimes, formatSunTime } from '@/lib/sunCalc'
 import { AIRCRAFT_CONFIGS } from '@/data/aircraftConfigs'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 const PILOT_NAMES = ['Alex', 'Juris', 'Marc']
 
@@ -35,6 +36,7 @@ export function FlightInfoPanel({
   onInstructorNameChange,
   onCoordsChange,
 }: FlightInfoPanelProps) {
+  const { t } = useLanguage()
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [geoStatus, setGeoStatus] = useState<'pending' | 'ok' | 'denied'>('pending')
 
@@ -66,23 +68,22 @@ export function FlightInfoPanel({
 
   return (
     <div className="aviation-card p-5">
-      {/* Header */}
       <div className="section-header flex items-center gap-2 mb-4">
         <Plane className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-semibold">Flight Info</h3>
+        <h3 className="text-lg font-semibold">{t('flightInfo')}</h3>
         <div className="ml-auto flex items-center gap-1.5">
           {geoStatus === 'pending' && (
             <Loader2 className="h-3.5 w-3.5 text-muted-foreground animate-spin" />
           )}
           {geoStatus === 'ok' && (
-            <MapPin className="h-3.5 w-3.5 text-green-500" aria-label="GPS acquired" />
+            <MapPin className="h-3.5 w-3.5 text-green-500" aria-label={t('gps')} />
           )}
           {geoStatus === 'denied' && (
-            <MapPinOff className="h-3.5 w-3.5 text-muted-foreground" aria-label="GPS unavailable" />
+            <MapPinOff className="h-3.5 w-3.5 text-muted-foreground" aria-label={t('defaultLabel')} />
           )}
           <span className="text-xs text-muted-foreground">
-            {geoStatus === 'ok' && 'GPS'}
-            {geoStatus === 'denied' && 'Default'}
+            {geoStatus === 'ok' && t('gps')}
+            {geoStatus === 'denied' && t('defaultLabel')}
           </span>
         </div>
       </div>
@@ -90,12 +91,12 @@ export function FlightInfoPanel({
       <div className="space-y-3">
         {/* Aircraft */}
         <div>
-          <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">Aircraft</div>
+          <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">{t('aircraft')}</div>
           <Select value={selectedAircraft} onValueChange={onAircraftChange}>
             <SelectTrigger className="h-9 w-full">
               <div className="flex items-center gap-2">
                 <Plane className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                <SelectValue placeholder="Select aircraft" />
+                <SelectValue placeholder={t('selectAircraft')} />
               </div>
             </SelectTrigger>
             <SelectContent>
@@ -113,13 +114,13 @@ export function FlightInfoPanel({
 
         {/* Pilot */}
         <div>
-          <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">Pilot</div>
+          <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">{t('pilot')}</div>
           <div className="relative">
             <User className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
             <Input
               type="text"
               list="fp-pilot-names"
-              placeholder="Pilot name"
+              placeholder={t('pilotName')}
               value={pilotName}
               onChange={(e) => onPilotNameChange(e.target.value)}
               className="pl-8 h-9"
@@ -132,7 +133,7 @@ export function FlightInfoPanel({
 
         {/* Flight Type */}
         <div>
-          <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">Flight Type</div>
+          <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">{t('flightType')}</div>
           <div className="grid grid-cols-2 gap-2">
             <Button
               variant={flightType === 'private' ? 'default' : 'outline'}
@@ -140,7 +141,7 @@ export function FlightInfoPanel({
               onClick={() => onFlightTypeChange('private')}
               className="w-full"
             >
-              Private
+              {t('private')}
             </Button>
             <Button
               variant={flightType === 'instruction' ? 'default' : 'outline'}
@@ -148,7 +149,7 @@ export function FlightInfoPanel({
               onClick={() => onFlightTypeChange('instruction')}
               className="w-full"
             >
-              Instruction
+              {t('instruction')}
             </Button>
           </div>
           {flightType === 'instruction' && (
@@ -156,7 +157,7 @@ export function FlightInfoPanel({
               <User className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
               <Input
                 type="text"
-                placeholder="Instructor name"
+                placeholder={t('instructorName')}
                 value={instructorName}
                 onChange={(e) => onInstructorNameChange(e.target.value)}
                 className="pl-8"
@@ -167,7 +168,7 @@ export function FlightInfoPanel({
 
         {/* Flight Date */}
         <div>
-          <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">Flight Date</div>
+          <div className="text-xs text-muted-foreground uppercase tracking-wide mb-1.5">{t('flightDate')}</div>
           <div className="relative">
             <CalendarDays className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
             <Input
@@ -185,7 +186,7 @@ export function FlightInfoPanel({
             <div className="flex items-center gap-2">
               <Sunrise className="h-5 w-5 text-amber-400" />
               <div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Sunrise</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">{t('sunrise')}</div>
                 <div className="font-mono font-semibold text-sm">{formatSunTime(sunTimes.sunrise)}</div>
               </div>
             </div>
@@ -193,7 +194,7 @@ export function FlightInfoPanel({
             <div className="flex items-center gap-2">
               <Sunset className="h-5 w-5 text-orange-400" />
               <div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Sunset</div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-wide">{t('sunset')}</div>
                 <div className="font-mono font-semibold text-sm">{formatSunTime(sunTimes.sunset)}</div>
               </div>
             </div>
@@ -201,7 +202,7 @@ export function FlightInfoPanel({
         ) : flightDate && geoStatus === 'denied' && (
           <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border/50 text-xs text-muted-foreground">
             <MapPinOff className="h-3.5 w-3.5 shrink-0" />
-            Enable GPS to display sunrise/sunset times
+            {t('enableGPS')}
           </div>
         )}
       </div>

@@ -1,6 +1,7 @@
 import { Gauge } from 'lucide-react'
 import type { SpeedData } from '@/types/aircraft'
 import { STALL_SPEEDS } from '@/types/aircraft'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface SpeedsPanelProps {
   speeds: SpeedData
@@ -9,11 +10,13 @@ interface SpeedsPanelProps {
 const Unit = () => <span className="text-xs text-muted-foreground font-normal ml-1">mph</span>
 
 export function SpeedsPanel({ speeds }: SpeedsPanelProps) {
+  const { t } = useLanguage()
+
   return (
     <div className="aviation-card p-5">
       <div className="section-header flex items-center gap-2 mb-4">
         <Gauge className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-semibold">Speeds</h3>
+        <h3 className="text-lg font-semibold">{t('speeds')}</h3>
       </div>
 
       <div className="space-y-2 text-sm">
@@ -34,27 +37,27 @@ export function SpeedsPanel({ speeds }: SpeedsPanelProps) {
         {/* Operational speeds */}
         <div className="space-y-1">
           <div className="flex justify-between py-1">
-            <span className="text-muted-foreground">Rotate</span>
+            <span className="text-muted-foreground">{t('rotate')}</span>
             <span className="font-mono">{speeds.rotate}<Unit /></span>
           </div>
           <div className="flex justify-between py-1">
-            <span className="text-muted-foreground">Best Angle (Vx)</span>
+            <span className="text-muted-foreground">{t('bestAngle')}</span>
             <span className="font-mono">{speeds.bestAngle}<Unit /></span>
           </div>
           <div className="flex justify-between py-1">
-            <span className="text-muted-foreground">Best Rate (Vy)</span>
+            <span className="text-muted-foreground">{t('bestRate')}</span>
             <span className="font-mono">{speeds.bestRate}<Unit /></span>
           </div>
           <div className="flex justify-between py-1">
-            <span className="text-muted-foreground">Cruise Climb</span>
+            <span className="text-muted-foreground">{t('cruiseClimb')}</span>
             <span className="font-mono">{speeds.cruiseClimb}<Unit /></span>
           </div>
           <div className="flex justify-between py-1">
-            <span className="text-muted-foreground">Manoeuvring (Va)</span>
+            <span className="text-muted-foreground">{t('manoeuvring')}</span>
             <span className="font-mono font-semibold">{speeds.manoeuvring}<Unit /></span>
           </div>
           <div className="flex justify-between py-1">
-            <span className="text-muted-foreground">Best Glide</span>
+            <span className="text-muted-foreground">{t('bestGlide')}</span>
             <span className="font-mono">{speeds.bestGlide}<Unit /></span>
           </div>
         </div>
@@ -64,19 +67,19 @@ export function SpeedsPanel({ speeds }: SpeedsPanelProps) {
         {/* Flap speeds */}
         <div className="space-y-1">
           <div className="flex justify-between py-1">
-            <span className="text-muted-foreground">Flaps 10°</span>
+            <span className="text-muted-foreground">{t('flaps10')}</span>
             <span className="font-mono">{speeds.flaps10}<Unit /></span>
           </div>
           <div className="flex justify-between py-1">
-            <span className="text-muted-foreground">Flaps 20°-Full</span>
+            <span className="text-muted-foreground">{t('flaps20Full')}</span>
             <span className="font-mono">{speeds.flaps20Full}<Unit /></span>
           </div>
           <div className="flex justify-between py-1">
-            <span className="text-muted-foreground">Approach Full Flaps</span>
+            <span className="text-muted-foreground">{t('approachFull')}</span>
             <span className="font-mono">{speeds.approachFull}<Unit /></span>
           </div>
           <div className="flex justify-between py-1">
-            <span className="text-muted-foreground">Over the Fence</span>
+            <span className="text-muted-foreground">{t('overFence')}</span>
             <span className="font-mono">{speeds.overFence}<Unit /></span>
           </div>
         </div>
@@ -84,7 +87,7 @@ export function SpeedsPanel({ speeds }: SpeedsPanelProps) {
         <div className="section-divider my-3" />
 
         {/* Stall speeds */}
-        <h4 className="font-medium text-sm mb-2">Stall Speeds (Power Off) <span className="text-muted-foreground font-normal">[mph]</span></h4>
+        <h4 className="font-medium text-sm mb-2">{t('stallSpeeds')} <span className="text-muted-foreground font-normal">[mph]</span></h4>
         <div className="overflow-x-auto">
           <table className="w-full text-xs">
             <thead>

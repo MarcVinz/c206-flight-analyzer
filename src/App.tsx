@@ -1,11 +1,14 @@
 import Index from '@/pages/Index'
 import { PasswordGate } from '@/components/PasswordGate'
+import { LanguageProvider } from '@/contexts/LanguageContext'
 
 function App() {
   return (
-    <PasswordGate>
-      <Index />
-    </PasswordGate>
+    <LanguageProvider>
+      <PasswordGate>
+        <Index />
+      </PasswordGate>
+    </LanguageProvider>
   )
 }
 

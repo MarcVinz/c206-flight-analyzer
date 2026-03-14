@@ -4,12 +4,15 @@ import { Button } from '@/components/ui/button'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { getChecklistsForAircraft } from '@/data/checklists'
 import type { ChecklistSection, ChecklistItem } from '@/data/checklists'
+import { useLanguage } from '@/contexts/LanguageContext'
+import { CHECKLIST_SECTION_TITLES_FR, CHECKLIST_ITEM_TEXT_FR } from '@/data/checklistTranslations'
 
 interface ChecklistPanelProps {
   selectedAircraft?: string
 }
 
 export function ChecklistPanel({ selectedAircraft = 'ZS-DIT' }: ChecklistPanelProps) {
+  const { t, lang } = useLanguage()
   const checklists = useMemo(() => getChecklistsForAircraft(selectedAircraft), [selectedAircraft])
   const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set())
   const [expandedSections, setExpandedSections] = useState<string[]>([])
@@ -59,7 +62,7 @@ export function ChecklistPanel({ selectedAircraft = 'ZS-DIT' }: ChecklistPanelPr
       <div className="section-header flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <ClipboardList className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold">Checklists</h3>
+          <h3 className="text-lg font-semibold">{t('checklists')}</h3>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
@@ -70,7 +73,7 @@ export function ChecklistPanel({ selectedAircraft = 'ZS-DIT' }: ChecklistPanelPr
             size="sm"
             onClick={resetAll}
             className="h-8 px-2"
-            title="Reset all"
+            title={t('resetAll')}
           >
             <RotateCcw className="h-4 w-4" />
           </Button>
@@ -102,7 +105,7 @@ export function ChecklistPanel({ selectedAircraft = 'ZS-DIT' }: ChecklistPanelPr
                       <Circle className="h-4 w-4 text-muted-foreground" />
                     )}
                     <span className={`font-medium ${isComplete ? 'text-aviation-green' : ''}`}>
-                      {section.title}
+                      {lang === 'fr' ? (CHECKLIST_SECTION_TITLES_FR[section.id] ?? section.title) : section.title}
                     </span>
                   </div>
                   <span className="text-xs text-muted-foreground">
@@ -118,7 +121,7 @@ export function ChecklistPanel({ selectedAircraft = 'ZS-DIT' }: ChecklistPanelPr
                     onClick={() => resetSection(section.id)}
                     className="h-6 px-2 text-xs"
                   >
-                    Reset
+                    {t('reset')}
                   </Button>
                 </div>
                 <div className="space-y-1">
@@ -129,6 +132,7 @@ export function ChecklistPanel({ selectedAircraft = 'ZS-DIT' }: ChecklistPanelPr
                       sectionId={section.id}
                       isChecked={isItemChecked(section.id, item.id)}
                       onToggle={() => toggleItem(section.id, item.id)}
+                      lang={lang}
                     />
                   ))}
                 </div>
@@ -146,9 +150,11 @@ interface ChecklistItemRowProps {
   sectionId: string
   isChecked: boolean
   onToggle: () => void
+  lang: string
 }
 
-function ChecklistItemRow({ item, isChecked, onToggle }: ChecklistItemRowProps) {
+function ChecklistItemRow({ item, isChecked, onToggle, lang }: ChecklistItemRowProps) {
+  const displayText = lang === 'fr' ? (CHECKLIST_ITEM_TEXT_FR[item.text] ?? item.text) : item.text
   return (
     <div
       onClick={onToggle}
@@ -178,7 +184,7 @@ function ChecklistItemRow({ item, isChecked, onToggle }: ChecklistItemRowProps) 
                 : ''
             }`}
           >
-            {item.text}
+            {displayText}
           </span>
           <span
             className={`text-sm font-mono shrink-0 ${

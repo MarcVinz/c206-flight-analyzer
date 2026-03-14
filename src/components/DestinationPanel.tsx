@@ -14,30 +14,30 @@ import type { FuelData } from '@/types/aircraft'
 import { formatTime } from '@/lib/utils'
 import { aerodromes, getAerodromeByIcao, type Aerodrome } from '@/data/aerodromes'
 import { RouteMap } from '@/components/RouteMap'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
 interface WaypointItem {
   id: string
-  label: string       // display name
+  label: string
   lat: number
   lng: number
-  elevation: string   // ft — auto-filled for aerodromes, editable
-  temp: string        // °C
-  qnh: string         // hPa
+  elevation: string
+  temp: string
+  qnh: string
 }
 
 interface SearchResult {
   label: string
   lat: number
   lng: number
-  elevation?: number  // only for aerodromes
+  elevation?: number
   isAerodrome: boolean
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-// Haversine using decimal degrees → NM
 function haversineNM(lat1: number, lng1: number, lat2: number, lng2: number): number {
   const R = 3440.065
   const dLat = (lat2 - lat1) * Math.PI / 180
@@ -76,7 +76,7 @@ let wpCounter = 0
 
 // ── WaypointSearch component ─────────────────────────────────────────────────
 
-function WaypointSearch({ onSelect }: { onSelect: (r: SearchResult) => void }) {
+function WaypointSearch({ onSelect, placeholder }: { onSelect: (r: SearchResult) => void; placeholder: string }) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchResult[]>([])
   const [loading, setLoading] = useState(false)
@@ -101,7 +101,6 @@ function WaypointSearch({ onSelect }: { onSelect: (r: SearchResult) => void }) {
     debounceRef.current = setTimeout(async () => {
       const q = query.toLowerCase()
 
-      // Local aerodrome matches (by ICAO or name)
       const localMatches: SearchResult[] = aerodromes
         .filter(a => a.icao.toLowerCase().includes(q) || a.name.toLowerCase().includes(q))
         .slice(0, 5)
@@ -110,7 +109,6 @@ function WaypointSearch({ onSelect }: { onSelect: (r: SearchResult) => void }) {
           return { label: `${a.icao} — ${a.name} (${a.elevation} ft)`, lat, lng, elevation: a.elevation, isAerodrome: true }
         })
 
-      // Nominatim geocoding
       setLoading(true)
       try {
         const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5&accept-language=en`
@@ -147,7 +145,7 @@ function WaypointSearch({ onSelect }: { onSelect: (r: SearchResult) => void }) {
         <Input
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Search aerodrome or location…"
+          placeholder={placeholder}
           className="pl-8 pr-8 h-8 text-sm"
           onFocus={() => results.length > 0 && setOpen(true)}
         />
@@ -219,6 +217,7 @@ export function DestinationPanel({
   setRouteTo,
   onTripDataChange,
 }: DestinationPanelProps) {
+  const { t } = useLanguage()
   const [manualDistance, setManualDistance] = useState<string>('')
   const [waypoints, setWaypoints] = useState<WaypointItem[]>([])
   const [fromTemp, setFromTemp] = useState('')
@@ -229,7 +228,6 @@ export function DestinationPanel({
   const fromAerodrome = routeFrom ? getAerodromeByIcao(routeFrom) : undefined
   const toAerodrome = routeTo ? getAerodromeByIcao(routeTo) : undefined
 
-  // Expose trip data for PDF
   useEffect(() => {
     if (!onTripDataChange) return
     const fromCoords = fromAerodrome ? aerodromeCoords(fromAerodrome) : null
@@ -241,14 +239,12 @@ export function DestinationPanel({
     })
   }, [fromAerodrome, fromTemp, fromQnh, toAerodrome, toTemp, toQnh, waypoints, onTripDataChange])
 
-  // All route coords in order
   const allCoords: [number, number][] = [
     ...(fromAerodrome ? [aerodromeCoords(fromAerodrome)] : []),
     ...waypoints.map(wp => [wp.lat, wp.lng] as [number, number]),
     ...(toAerodrome ? [aerodromeCoords(toAerodrome)] : []),
   ]
 
-  // Recalculate total route distance across all legs
   useEffect(() => {
     if (allCoords.length >= 2) {
       let total = 0
@@ -314,11 +310,11 @@ export function DestinationPanel({
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent className="max-h-[300px] z-[1000]">
-        <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted">South Africa</div>
+        <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted">{t('southAfrica')}</div>
         {groupedAerodromes.ZA.map(a => <SelectItem key={a.icao} value={a.icao} className="font-mono text-sm">{a.icao} - {a.name}</SelectItem>)}
-        <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted">Namibia</div>
+        <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted">{t('namibia')}</div>
         {groupedAerodromes.NA.map(a => <SelectItem key={a.icao} value={a.icao} className="font-mono text-sm">{a.icao} - {a.name}</SelectItem>)}
-        <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted">Botswana</div>
+        <div className="px-2 py-1 text-xs font-semibold text-muted-foreground bg-muted">{t('botswana')}</div>
         {groupedAerodromes.BW.map(a => <SelectItem key={a.icao} value={a.icao} className="font-mono text-sm">{a.icao} - {a.name}</SelectItem>)}
       </SelectContent>
     </Select>
@@ -328,16 +324,16 @@ export function DestinationPanel({
     <div className="aviation-card p-5">
       <div className="section-header flex items-center gap-2 mb-4">
         <MapPin className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-semibold">Trip Planning</h3>
+        <h3 className="text-lg font-semibold">{t('tripPlanning')}</h3>
       </div>
 
       {/* Departure */}
       <div className="mb-3">
-        <Label className="text-xs text-muted-foreground mb-1 block">From (ICAO)</Label>
-        <AerodromeSelect value={routeFrom} onChange={setRouteFrom} placeholder="Select departure" />
+        <Label className="text-xs text-muted-foreground mb-1 block">{t('fromIcao')}</Label>
+        <AerodromeSelect value={routeFrom} onChange={setRouteFrom} placeholder={t('selectDeparture')} />
         {fromAerodrome && (
           <>
-            <p className="text-xs text-muted-foreground mt-1">Elev: {fromAerodrome.elevation} ft</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('elev')} {fromAerodrome.elevation} ft</p>
             <div className="grid grid-cols-2 gap-1.5 mt-2">
               <div>
                 <div className="text-xs text-muted-foreground mb-1">Temp (°C)</div>
@@ -349,9 +345,9 @@ export function DestinationPanel({
               </div>
             </div>
             {(() => {
-              const t = parseFloat(fromTemp)
-              if (isNaN(t)) return null
-              const delta = t - isaTemp(fromAerodrome.elevation)
+              const temp = parseFloat(fromTemp)
+              if (isNaN(temp)) return null
+              const delta = temp - isaTemp(fromAerodrome.elevation)
               return (
                 <div className="flex items-center gap-1.5 mt-1.5">
                   <Thermometer className="h-3 w-3 text-muted-foreground" />
@@ -376,7 +372,6 @@ export function DestinationPanel({
 
             return (
               <div key={wp.id} className="border border-border/50 rounded-lg p-2.5 bg-muted/20 space-y-2">
-                {/* Header: label + reorder + delete */}
                 <div className="flex items-start gap-1.5">
                   <Navigation className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
@@ -399,7 +394,6 @@ export function DestinationPanel({
                   </div>
                 </div>
 
-                {/* Elev + Temp + QNH */}
                 <div className="grid grid-cols-3 gap-1.5 text-xs">
                   <div>
                     <div className="text-muted-foreground mb-1">Elev (ft)</div>
@@ -433,7 +427,6 @@ export function DestinationPanel({
                   </div>
                 </div>
 
-                {/* Delta ISA */}
                 {deltaISA !== null && (
                   <div className="flex items-center gap-1.5">
                     <Thermometer className="h-3 w-3 text-muted-foreground" />
@@ -453,17 +446,17 @@ export function DestinationPanel({
 
       {/* Add waypoint search */}
       <div className="mb-3">
-        <Label className="text-xs text-muted-foreground mb-1 block">Add Waypoint</Label>
-        <WaypointSearch onSelect={addWaypoint} />
+        <Label className="text-xs text-muted-foreground mb-1 block">{t('addWaypoint')}</Label>
+        <WaypointSearch onSelect={addWaypoint} placeholder={t('searchAerodrome')} />
       </div>
 
       {/* Destination */}
       <div className="mb-4">
-        <Label className="text-xs text-muted-foreground mb-1 block">To (ICAO)</Label>
-        <AerodromeSelect value={routeTo} onChange={setRouteTo} placeholder="Select destination" />
+        <Label className="text-xs text-muted-foreground mb-1 block">{t('toIcao')}</Label>
+        <AerodromeSelect value={routeTo} onChange={setRouteTo} placeholder={t('selectDestination')} />
         {toAerodrome && (
           <>
-            <p className="text-xs text-muted-foreground mt-1">Elev: {toAerodrome.elevation} ft</p>
+            <p className="text-xs text-muted-foreground mt-1">{t('elev')} {toAerodrome.elevation} ft</p>
             <div className="grid grid-cols-2 gap-1.5 mt-2">
               <div>
                 <div className="text-xs text-muted-foreground mb-1">Temp (°C)</div>
@@ -475,9 +468,9 @@ export function DestinationPanel({
               </div>
             </div>
             {(() => {
-              const t = parseFloat(toTemp)
-              if (isNaN(t)) return null
-              const delta = t - isaTemp(toAerodrome.elevation)
+              const temp = parseFloat(toTemp)
+              if (isNaN(temp)) return null
+              const delta = temp - isaTemp(toAerodrome.elevation)
               return (
                 <div className="flex items-center gap-1.5 mt-1.5">
                   <Thermometer className="h-3 w-3 text-muted-foreground" />
@@ -504,12 +497,12 @@ export function DestinationPanel({
 
       {/* Distance input */}
       <div className="mb-4">
-        <Label className="text-sm text-muted-foreground mb-2 block">Trip Distance (NM)</Label>
+        <Label className="text-sm text-muted-foreground mb-2 block">{t('tripDistanceNM')}</Label>
         <Input
           type="number"
           value={manualDistance}
           onChange={(e) => handleManualDistanceChange(e.target.value)}
-          placeholder="Enter distance or select route"
+          placeholder={t('enterDistance')}
           className="font-mono"
         />
       </div>
@@ -517,7 +510,7 @@ export function DestinationPanel({
       {/* Block speed slider */}
       <div className="mb-4">
         <div className="flex items-center justify-between mb-1.5">
-          <Label className="text-sm text-muted-foreground">Block Speed</Label>
+          <Label className="text-sm text-muted-foreground">{t('blockSpeed')}</Label>
           <span className="font-mono font-semibold text-sm text-primary">{blockSpeed} kt</span>
         </div>
         <input
@@ -534,7 +527,7 @@ export function DestinationPanel({
           <span>120 kt</span>
           <span>180 kt</span>
         </div>
-        <p className="text-xs text-muted-foreground mt-1">Fuel burn: {fuelBurnRate} gal/h</p>
+        <p className="text-xs text-muted-foreground mt-1">{t('fuelBurnRate', { rate: fuelBurnRate })}</p>
       </div>
 
       {tripDistance > 0 && (
@@ -545,7 +538,7 @@ export function DestinationPanel({
             <div className="p-3 rounded-lg bg-muted/50">
               <div className="flex items-center gap-2 mb-1">
                 <Clock className="h-4 w-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Flight Time</span>
+                <span className="text-xs text-muted-foreground">{t('flightTime')}</span>
               </div>
               <span className="font-mono text-xl font-bold text-primary">
                 {formatTime(Math.round(tripTimeMinutes))}
@@ -554,7 +547,7 @@ export function DestinationPanel({
             <div className="p-3 rounded-lg bg-muted/50">
               <div className="flex items-center gap-2 mb-1">
                 <FuelIcon className="h-4 w-4 text-muted-foreground" />
-                <span className="text-xs text-muted-foreground">Fuel Required</span>
+                <span className="text-xs text-muted-foreground">{t('fuelRequired')}</span>
               </div>
               <span className={`font-mono text-xl font-bold ${isInsufficientFuel ? 'text-aviation-red' : 'text-aviation-green'}`}>
                 {tripFuelBurn.toFixed(0)} lbs
@@ -564,21 +557,21 @@ export function DestinationPanel({
 
           <div className="space-y-2 text-sm">
             <div className="flex justify-between py-1 border-b border-border/50">
-              <span className="text-muted-foreground">Fuel Loaded</span>
+              <span className="text-muted-foreground">{t('fuelLoaded')}</span>
               <span className="font-mono">{fuelData.weight.toFixed(0)} lbs</span>
             </div>
             <div className="flex justify-between py-1 border-b border-border/50">
-              <span className="text-muted-foreground">Trip Fuel Burn</span>
+              <span className="text-muted-foreground">{t('tripFuelBurn')}</span>
               <span className="font-mono">-{tripFuelBurn.toFixed(0)} lbs</span>
             </div>
             <div className="flex justify-between py-1 border-b border-border/50">
-              <span className="text-muted-foreground">Fuel Remaining</span>
+              <span className="text-muted-foreground">{t('fuelRemaining')}</span>
               <span className={`font-mono font-semibold ${isInsufficientFuel ? 'text-aviation-red' : 'text-aviation-green'}`}>
                 {fuelRemaining.toFixed(0)} lbs
               </span>
             </div>
             <div className="flex justify-between py-1">
-              <span className="text-muted-foreground">Remaining Endurance</span>
+              <span className="text-muted-foreground">{t('remainingEndurance')}</span>
               <span className={`font-mono font-semibold ${isInsufficientFuel ? 'text-aviation-red' : ''}`}>
                 {fuelRemaining > 0 ? formatTime(Math.round((fuelRemaining / 6 / fuelBurnRate) * 60)) : '0:00'}
               </span>
@@ -589,10 +582,10 @@ export function DestinationPanel({
             <div className="mt-4 p-3 rounded-lg bg-aviation-red/10 border border-aviation-red/30">
               <div className="flex items-center gap-2 text-aviation-red">
                 <FuelIcon className="h-4 w-4" />
-                <span className="text-sm font-semibold">INSUFFICIENT FUEL</span>
+                <span className="text-sm font-semibold">{t('insufficientFuel')}</span>
               </div>
               <p className="text-xs text-aviation-red mt-1">
-                Add {Math.abs(fuelRemaining).toFixed(0)} lbs more fuel for this trip
+                {t('insufficientFuelMsg', { lbs: Math.abs(fuelRemaining).toFixed(0) })}
               </p>
             </div>
           )}
@@ -601,7 +594,7 @@ export function DestinationPanel({
 
       {tripDistance === 0 && (
         <div className="text-center text-muted-foreground text-sm py-4">
-          Enter trip distance to calculate fuel requirements
+          {t('enterTripDistance')}
         </div>
       )}
     </div>

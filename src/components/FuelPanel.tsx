@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import type { FuelData } from '@/types/aircraft'
 import { formatTime, lbsToKg } from '@/lib/utils'
+import { useLanguage } from '@/contexts/LanguageContext'
 
 interface FuelPanelProps {
   fuelGallons: number
@@ -24,6 +25,7 @@ export function FuelPanel({
   maxFuelGallons,
   fuelArm,
 }: FuelPanelProps) {
+  const { t } = useLanguage()
   const fuelPercentage = (fuelGallons / maxFuelGallons) * 100
   const isLowFuel = fuelData.flightTime < 30
 
@@ -31,7 +33,7 @@ export function FuelPanel({
     <div className="aviation-card p-5">
       <div className="section-header flex items-center gap-2 mb-5">
         <Fuel className="h-5 w-5 text-primary" />
-        <h3 className="text-lg font-semibold">Fuel</h3>
+        <h3 className="text-lg font-semibold">{t('fuel')}</h3>
       </div>
 
       {/* Fuel gauge visualization */}
@@ -56,7 +58,7 @@ export function FuelPanel({
       <div className="space-y-4">
         <div>
           <Label className="text-sm text-muted-foreground mb-2 block">
-            Fuel Quantity (Max {maxFuelGallons} gal usable)
+            {t('fuelQuantityMax', { max: maxFuelGallons })}
           </Label>
           <div className="flex items-center gap-4">
             <Slider
@@ -82,7 +84,7 @@ export function FuelPanel({
         </div>
 
         <div>
-          <Label className="text-sm text-muted-foreground mb-2 block">Reserve</Label>
+          <Label className="text-sm text-muted-foreground mb-2 block">{t('reserve')}</Label>
           <div className="flex items-center gap-4">
             <Slider
               value={[reserveMinutes]}
@@ -109,19 +111,19 @@ export function FuelPanel({
       <div className="section-divider my-4" />
       <div className="grid grid-cols-1 xs:grid-cols-2 gap-2 sm:gap-3 text-sm">
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Weight:</span>
+          <span className="text-muted-foreground">{t('weight')}</span>
           <span className="font-mono">{fuelData.weight.toFixed(0)} lbs ({lbsToKg(fuelData.weight).toFixed(0)} kg)</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Arm:</span>
+          <span className="text-muted-foreground">{t('arm')}</span>
           <span className="font-mono">{fuelArm}"</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Moment:</span>
+          <span className="text-muted-foreground">{t('moment')}</span>
           <span className="font-mono">{fuelData.moment.toFixed(2)}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-muted-foreground">Burn rate:</span>
+          <span className="text-muted-foreground">{t('burnRate')}</span>
           <span className="font-mono">{fuelData.consumption} gal/h</span>
         </div>
       </div>
@@ -132,7 +134,7 @@ export function FuelPanel({
         <div className="p-3 rounded-lg bg-muted/50">
           <div className="flex items-center gap-2 mb-1">
             <Clock className="h-4 w-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Flight Time</span>
+            <span className="text-xs text-muted-foreground">{t('flightTime')}</span>
           </div>
           <span
             className={`font-mono text-xl font-bold ${
@@ -146,7 +148,7 @@ export function FuelPanel({
         <div className="p-3 rounded-lg bg-muted/50">
           <div className="flex items-center gap-2 mb-1">
             <Fuel className="h-4 w-4 text-muted-foreground" />
-            <span className="text-xs text-muted-foreground">Endurance</span>
+            <span className="text-xs text-muted-foreground">{t('endurance')}</span>
           </div>
           <span className="font-mono text-xl font-bold text-primary">
             {formatTime(fuelData.endurance)}

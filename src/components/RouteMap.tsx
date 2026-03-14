@@ -178,22 +178,32 @@ export function RouteMap({ fromAerodrome, toAerodrome, waypointCoords = [], dist
     </MapContainer>
   )
 
+  const toggleBtnStyle = isFullscreen
+    ? { top: 'calc(0.5rem + env(safe-area-inset-top))', right: 'calc(0.5rem + env(safe-area-inset-right))' }
+    : undefined
+
   const toggleBtn = (
     <button
       type="button"
       onClick={() => setIsFullscreen(v => !v)}
       className={`absolute top-2 right-2 ${btnClass}`}
+      style={toggleBtnStyle}
       title={isFullscreen ? 'Réduire' : 'Agrandir'}
     >
       {isFullscreen ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
     </button>
   )
 
+  const satBtnStyle = isFullscreen
+    ? { bottom: 'calc(0.5rem + env(safe-area-inset-bottom))' }
+    : undefined
+
   const satelliteBtn = (
     <button
       type="button"
       onClick={() => setIsSatellite(v => !v)}
       className={`absolute bottom-2 left-2 ${btnClass}`}
+      style={satBtnStyle}
       title={isSatellite ? 'Vue carte' : 'Vue satellite'}
     >
       {isSatellite ? <Map className="h-3.5 w-3.5" /> : <Satellite className="h-3.5 w-3.5" />}
@@ -201,14 +211,17 @@ export function RouteMap({ fromAerodrome, toAerodrome, waypointCoords = [], dist
   )
 
   const distanceOverlay = distance && distance > 0 && (
-    <div className="absolute bottom-2 right-2 z-[1000] bg-background/90 px-2 py-1 rounded text-xs font-mono border border-border/50">
+    <div
+      className="absolute bottom-2 right-2 z-[1000] bg-background/90 px-2 py-1 rounded text-xs font-mono border border-border/50"
+      style={satBtnStyle}
+    >
       {distance} NM
     </div>
   )
 
   if (isFullscreen) {
     return (
-      <div className="fixed inset-0 z-40 bg-background">
+      <div className="fixed inset-0 z-40 bg-background" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
         {mapContent}
         {toggleBtn}
         {satelliteBtn}
