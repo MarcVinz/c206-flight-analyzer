@@ -19,6 +19,145 @@ export const CHECKLIST_SECTION_TITLES_FR: Record<string, string> = {
   parking: 'Stationnement',
 }
 
+// French translations for checklist item responses (keyed by English response)
+export const CHECKLIST_ITEM_RESPONSE_FR: Record<string, string> = {
+  // Oil / Fuel quantities (keep values, translate words)
+  '8 QTS': '8 QTS',
+  '7-9 QTS': '7-9 QTS',
+  'STRAINED AND DIPPED (13-14 gal/h)': 'VÉRIFIÉ ET JAUGÉ (13-14 gal/h)',
+  'STRAINED AND DIPPED (12 gal/h)': 'VÉRIFIÉ ET JAUGÉ (12 gal/h)',
+  // Generic states
+  'OFF': 'COUPÉ',
+  'ON': 'ALLUMÉ',
+  'OPEN': 'OUVERT',
+  'CLOSED': 'FERMÉ',
+  'BOTH': 'LES DEUX',
+  'SET': 'RÉGLÉ',
+  'CHECK': 'VÉRIFIER',
+  'TEST': 'TESTER',
+  'STBY': 'VEILLE',
+  'ALT': 'ALT',
+  'RETRACT': 'RENTRER',
+  'LEAN': 'APPAUVRI',
+  'IDLE': 'RALENTI',
+  'UP': 'RENTRÉ',
+  'APPLIED': 'SERRÉ',
+  'REMOVED': 'RETIRÉ',
+  'INSERTED': 'INSÉRÉ',
+  'INSTALLED': 'INSTALLÉ',
+  'TIED': 'AMARRÉ',
+  'LATCHED': 'VERROUILLÉ',
+  'FASTENED': 'BOUCLÉ',
+  'SECURE': 'VERROUILLÉ',
+  'COMPLETE': 'TERMINÉ',
+  'COMPLETED': 'REMPLI',
+  'ALIVE': 'ACTIVE',
+  // Mixture
+  'FULL RICH': 'PLEIN RICHE',
+  'SET FULL RICH': 'PLEIN RICHE',
+  'CONFIRM FULL RICH': 'PLEIN RICHE CONFIRMÉ',
+  'LEAN for taxi': 'APPAUVRI (roulage)',
+  'LEAN (till RPM drops, one turn rich)': 'APPAUVRI (chute RPM, 1 tour riche)',
+  'LEAN (peak EGT - 50°F ROP)': 'APPAUVRI (pic EGT - 50°F ROP)',
+  'AS REQUIRED (lean above 3000 ft)': 'SELON BESOIN (appauvrir > 3000 ft)',
+  'ENRICH AS REQUIRED': 'ENRICHIR SELON BESOIN',
+  'HALF IN before taking power at lower ALT': 'À MOITIÉ avant reprise puissance basse altitude',
+  'IDLE CUT-OFF': 'COUPURE RALENTI',
+  '18 GAL/HR': '18 GAL/H',
+  // Pitch
+  'FULL FINE': 'PAS COURT',
+  'TURN IN TO FULL FINE': 'METTRE EN PAS COURT COMPLET',
+  'FULL FINE (Confirm)': 'PAS COURT (Confirmé)',
+  // Throttle
+  'FULL OPEN': 'PLEIN GAZ',
+  'CLOSE, ½ INCH OPEN': 'FERMER, ½ POUCE OUVERT',
+  'OPEN 1/2 INCH': '½ POUCE OUVERT',
+  'SLOW IDLE': 'RALENTI LENT',
+  'FULL or 23" MAP': 'PLEIN ou 23" MAP',
+  'AS REQUIRED': 'SELON BESOIN',
+  // Fuel selector
+  'EMPTIEST TANK': 'RÉSERVOIR LE PLUS VIDE',
+  'FULLEST TANK': 'RÉSERVOIR LE PLUS PLEIN',
+  'CONFIRM FULLEST TANK': 'RÉSERVOIR LE PLUS PLEIN CONFIRMÉ',
+  // Cowl flaps
+  'CONFIRM OPEN': 'CONFIRMÉ OUVERT',
+  'CONFIRM CLOSED': 'CONFIRMÉ FERMÉ',
+  'AS REQUIRED (CLOSED < 330° CHT)': 'SELON BESOIN (FERMÉ < 330° CHT)',
+  'OPEN (for Go-around/Touch And Go)': 'OUVERT (remise de gaz / Touch and Go)',
+  'CLOSE (avoid shock-cooling!)': 'FERMER (éviter choc thermique !)',
+  'CLOSED (avoid shock-cooling!)': 'FERMÉ (éviter choc thermique !)',
+  'RETRACT & OPEN': 'RENTRER ET OUVRIR',
+  // Avionics
+  'SET FUEL': 'SAISIR CARBURANT',
+  'SET AND CALL': 'RÉGLÉ ET CONTACT',
+  // Instruments / pressures
+  'GREEN within 30 sec': 'AU VERT dans 30 sec',
+  'IN THE GREEN': 'AU VERT',
+  'IN THE GREEN (MIN 200° CHT, 75° OIL)': 'AU VERT (MIN 200° CHT, 75° HUILE)',
+  'IN THE GREEN (OIL and CHTs)': 'AU VERT (HUILE et CHT)',
+  'POSITIVE rate of charge': 'CHARGE POSITIVE',
+  'POSITIVE RATE OF CHARGE': 'CHARGE POSITIVE',
+  // Magnetos / ignition
+  'L,R,OFF,R,L BOTH (Dead-cut)': 'G,D,COUPÉ,D,G LES DEUX (Dead-cut)',
+  'TEST L & R (max drop 150 RPM, max diff 50 RPM)': 'TEST G & D (chute max 150 RPM, écart max 50 RPM)',
+  'TEST L & R (max drop 125 RPM, max diff 50 RPM)': 'TEST G & D (chute max 125 RPM, écart max 50 RPM)',
+  'ON BOTH': 'SUR LES DEUX',
+  // Propeller
+  'CYCLE TO 1500 RPM & BACK (3x 1st flight)': 'CYCLES À 1500 RPM (3x 1er vol)',
+  'CYCLE (3x 1st flight)': 'CYCLES (3x 1er vol)',
+  // RPM / idle
+  'Idle (600-900 RPM)': 'Ralenti (600-900 RPM)',
+  'Idle (check 500-700 RPM)': 'Ralenti (vérifier 500-700 RPM)',
+  '2300 RPM (Noise abatement)': '2300 RPM (atténuation bruit)',
+  // Pre-flight pump
+  'ON "HI" 3 sec, then OFF': 'SUR "HI" 3 sec, puis COUPÉ',
+  'ON 3-5 sec, then OFF': 'SUR 3-5 sec, puis COUPÉ',
+  // Ignition start
+  'START, Slowly Open Throttle': 'DÉMARRAGE, ouvrir gaz progressivement',
+  'START': 'DÉMARRAGE',
+  // Before takeoff
+  'MEMORY AID': 'AIDE MÉMOIRE',
+  'FULL AND FREE MOVEMENT': 'LIBRE ET CORRECT',
+  'FREE AND CORRECT': 'LIBRE ET CORRECT',
+  'FOR TAKE-OFF (elevator central)': 'DÉCOLLAGE (profondeur centré)',
+  'FOR TAKE-OFF': 'DÉCOLLAGE',
+  'SET FOR TAKE-OFF': 'DÉCOLLAGE',
+  'SECURE / TIGHT': 'BLOQUÉ / SERRÉ',
+  'SUFFICIENT FOR FLIGHT': 'SUFFISANT POUR LE VOL',
+  '10° NORMAL ; 20° SHORT FIELD': '10° NORMAL ; 20° TERRAIN COURT',
+  '0-10° (10-20° SHORT FIELD)': '0-10° (10-20° TERRAIN COURT)',
+  'SECURE & TIGHT': 'BOUCLÉ ET SERRÉ',
+  'NO CRACKED GLASS OR BROKEN NEEDLES': 'PAS DE VERRE FISSURÉ NI AIGUILLE CASSÉE',
+  'COMPLETE & CALL READY': 'TERMINÉ ET PRÊT',
+  // Takeoff
+  'Smoothly (right rudder as required)': 'Progressivement (palonniers droits au besoin)',
+  'Smoothly': 'Progressivement',
+  'SET for Full Throttle (Placard)': 'RÉGLER plein gaz (plaquette)',
+  'FULL POWER (for altitude)': 'PLEINE PUISSANCE (pour altitude)',
+  'Apply Brakes to stop wheels': 'Freiner pour arrêter les roues',
+  '80 MPH, accelerate to 100 MPH clear of obstacles': '80 MPH, accélérer à 100 MPH hors obstacles',
+  // After takeoff
+  'TOP OF GREEN (25" MAP / 24.5" PAG)': 'HAUT DU VERT (25" MAP / 24.5" PAG)',
+  'TOP OF GREEN (2550 RPM / 2500 PAG)': 'HAUT DU VERT (2550 RPM / 2500 PAG)',
+  // Descent
+  'As required (gradual reduction, 18-20" MAP)': 'Selon besoin (réduction progressive, 18-20" MAP)',
+  // Landing
+  'FIXED GEAR': 'TRAIN FIXE',
+  'AS REQUIRED (10°)': 'SELON BESOIN (10°)',
+  'AS REQUIRED, ENSURE WHITE ARC (20°)': 'SELON BESOIN, ARC BLANC (20°)',
+  'AS REQUIRED (FULL)': 'SELON BESOIN (PLEIN)',
+  '80 MPH / Over the fence 75 MPH': '80 MPH / Seuil 75 MPH',
+  '70-80 MPH': '70-80 MPH',
+  // After landing
+  'SET NEUTRAL': 'CENTRÉ',
+  // Shutdown
+  'FILLED (HOBBS & TACH!)': 'REMPLI (HOBBS & TACH!)',
+  // Parking
+  'INSERTED OR STRAP YOKE WITH HARNESS': 'INSÉRÉ OU BLOQUER AVEC HARNAIS',
+  'LOCKED FROM INSIDE': 'VERROUILLÉE DE L\'INTÉRIEUR',
+  'LOCK WITH KEY': 'VERROUILLER À CLÉ',
+}
+
 // French translations for checklist item texts (keyed by English text)
 export const CHECKLIST_ITEM_TEXT_FR: Record<string, string> = {
   // Pre-flight

@@ -5,7 +5,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { getChecklistsForAircraft } from '@/data/checklists'
 import type { ChecklistSection, ChecklistItem } from '@/data/checklists'
 import { useLanguage } from '@/contexts/LanguageContext'
-import { CHECKLIST_SECTION_TITLES_FR, CHECKLIST_ITEM_TEXT_FR } from '@/data/checklistTranslations'
+import { CHECKLIST_SECTION_TITLES_FR, CHECKLIST_ITEM_TEXT_FR, CHECKLIST_ITEM_RESPONSE_FR } from '@/data/checklistTranslations'
 
 interface ChecklistPanelProps {
   selectedAircraft?: string
@@ -155,6 +155,7 @@ interface ChecklistItemRowProps {
 
 function ChecklistItemRow({ item, isChecked, onToggle, lang }: ChecklistItemRowProps) {
   const displayText = lang === 'fr' ? (CHECKLIST_ITEM_TEXT_FR[item.text] ?? item.text) : item.text
+  const displayResponse = lang === 'fr' ? (CHECKLIST_ITEM_RESPONSE_FR[item.response] ?? item.response) : item.response
   return (
     <div
       onClick={onToggle}
@@ -191,7 +192,7 @@ function ChecklistItemRow({ item, isChecked, onToggle, lang }: ChecklistItemRowP
               isChecked ? 'text-aviation-green' : 'text-muted-foreground'
             }`}
           >
-            {item.response}
+            {displayResponse}
           </span>
         </div>
       </div>
