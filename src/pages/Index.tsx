@@ -2,7 +2,7 @@ import { useState, useCallback, useRef } from 'react'
 import { jsPDF } from 'jspdf'
 import type { TripPlanningData } from '@/components/DestinationPanel'
 import { renderRouteMap } from '@/lib/renderRouteMap'
-import { Weight, Target, Fuel, Scale, ClipboardList, Gauge, AlertTriangle, MapPin, BookOpen, Activity, Plane } from 'lucide-react'
+import { Weight, Target, Fuel, Scale, ClipboardList, Gauge, AlertTriangle, MapPin, BookOpen, Activity, Plane, Link } from 'lucide-react'
 import { Header } from '@/components/Header'
 import { useLanguage } from '@/contexts/LanguageContext'
 import { MassInputCard } from '@/components/MassInputCard'
@@ -14,6 +14,7 @@ import { LimitationsPanel } from '@/components/LimitationsPanel'
 import { DestinationPanel } from '@/components/DestinationPanel'
 import { ChecklistPanel } from '@/components/ChecklistPanel'
 import { LogBookPanel } from '@/components/LogBookPanel'
+import { UsefulLinksPanel } from '@/components/UsefulLinksPanel'
 import { PerformancePanel, type PerfData, type PerfAutoFill } from '@/components/PerformancePanel'
 import { CollapsibleSection } from '@/components/CollapsibleSection'
 import { FlightInfoPanel } from '@/components/FlightInfoPanel'
@@ -821,6 +822,14 @@ export default function Index() {
               flightType={flightType}
               instructorName={instructorName}
             />
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title={t('usefulLinks')}
+            icon={<Link className="h-5 w-5" />}
+            defaultOpen={false}
+          >
+            <UsefulLinksPanel />
           </CollapsibleSection>
         </div>
       </main>

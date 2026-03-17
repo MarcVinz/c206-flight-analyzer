@@ -168,6 +168,24 @@ export const translations = {
     leftSeat: 'Left',
     rightSeat: 'Right',
     footerDisclaimer: 'For flight planning purposes only. Always verify with official POH.',
+
+    // UsefulLinksPanel
+    usefulLinks: 'Useful Links',
+    weather: 'Weather',
+    flightPlans: 'Flight Plans',
+    notamsAips: 'NOTAMs & AIPs',
+    flightPlanTips: 'Tips for filing online:',
+    flightPlanField18: 'Under Field 18, include:',
+    weatherTip: 'Always a good idea to phone the destination for a weather update',
+    flightPlanTip1: 'Do not select VFR as your level — you\'ll need to give an altitude or flight level',
+    flightPlanTip2: 'In general they want to see a waypoint every 30 min. For longer flights, a waypoint every hour is accepted.',
+    flightPlanTip3: 'They like to see at least one destination alternate',
+    flightPlanTip4: 'Remember to include EET/ if crossing zone boundaries',
+    flightPlanFiled: 'File at least 30 min before ETD',
+    flightPlanValid: 'Valid 30 min prior ETD to ETD + 1hr',
+    flightPlanRefNote: 'Write down the reference number given on acceptance of your flight plan',
+    phoneLabel: 'Phone:',
+    onlineLabel: 'Online:',
   },
 
   fr: {
@@ -337,6 +355,24 @@ export const translations = {
     leftSeat: 'Gauche',
     rightSeat: 'Droite',
     footerDisclaimer: 'À des fins de préparation de vol uniquement. Toujours vérifier avec le manuel de vol officiel.',
+
+    // UsefulLinksPanel
+    usefulLinks: 'Liens utiles',
+    weather: 'Météo',
+    flightPlans: 'Plans de vol',
+    notamsAips: 'NOTAMs & AIPs',
+    flightPlanTips: 'Conseils pour le dépôt en ligne :',
+    flightPlanField18: 'Dans le champ 18, inclure :',
+    weatherTip: 'Penser à appeler la destination pour un point météo',
+    flightPlanTip1: 'Ne pas sélectionner VFR comme niveau — donner une altitude ou un niveau de vol',
+    flightPlanTip2: 'En général, un point toutes les 30 min est requis. Pour les longs vols, un point par heure est accepté.',
+    flightPlanTip3: 'Prévoir au moins un terrain de dégagement de destination',
+    flightPlanTip4: 'Inclure EET/ si franchissement de limites de zones',
+    flightPlanFiled: 'Déposer au moins 30 min avant l\'ETD',
+    flightPlanValid: 'Valide de 30 min avant l\'ETD jusqu\'à ETD + 1h',
+    flightPlanRefNote: 'Noter le numéro de référence fourni lors de l\'acceptation du plan de vol',
+    phoneLabel: 'Tél :',
+    onlineLabel: 'En ligne :',
   },
 } as const
 
