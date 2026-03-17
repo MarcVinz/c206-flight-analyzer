@@ -615,7 +615,7 @@ export default function Index() {
             <SpeedsPanel speeds={aircraftConfig.speeds} />
           </div>
 
-          {/* Column 3: Checklists, Limits & LogBook */}
+          {/* Column 3: Checklists, Limits, LogBook & Useful Links */}
           <div className="space-y-6">
             <ChecklistPanel selectedAircraft={selectedAircraft} />
             <LimitationsPanel
@@ -633,6 +633,7 @@ export default function Index() {
               flightType={flightType}
               instructorName={instructorName}
             />
+            <UsefulLinksPanel showTitle />
           </div>
         </div>
 
