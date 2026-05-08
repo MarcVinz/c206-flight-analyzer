@@ -489,11 +489,11 @@ export default function Index() {
     ensureSpaceP2(60)   // 12 title + 6×7 rows = 54mm
     const perf = perfDataRef.current
     sectionTitle('PERFORMANCE  (Density Altitude)')
-    row('Airport Altitude', `${perf.altitude.toLocaleString()} ft`, false)
+    row('Airport Altitude', `${perf.altitude.toFixed(0)} ft`, false)
     row('QNH', `${perf.qnh} hPa`, true)
     row('OAT', `${perf.oat >= 0 ? '+' : ''}${perf.oat}°C`, false)
-    row('Pressure Altitude', `${perf.pressureAltitude.toLocaleString()} ft`, true)
-    row('Density Altitude', `${perf.densityAltitude.toLocaleString()} ft`, false)
+    row('Pressure Altitude', `${perf.pressureAltitude.toFixed(0)} ft`, true)
+    row('Density Altitude', `${perf.densityAltitude.toFixed(0)} ft`, false)
     row('ISA Deviation', `${perf.isaDeviation > 0 ? '+' : ''}${perf.isaDeviation}°C`, true)
     y += 3
 
