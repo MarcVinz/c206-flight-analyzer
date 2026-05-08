@@ -1,12 +1,13 @@
-import { Printer } from 'lucide-react'
+import { Printer, Bookmark } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useLanguage } from '@/contexts/LanguageContext'
 
 interface HeaderProps {
   onPrint: () => void
+  onOpenSaves: () => void
 }
 
-export function Header({ onPrint }: HeaderProps) {
+export function Header({ onPrint, onOpenSaves }: HeaderProps) {
   const { t, toggleLang } = useLanguage()
 
   return (
@@ -35,6 +36,14 @@ export function Header({ onPrint }: HeaderProps) {
               className="font-semibold text-xs px-2.5"
             >
               {t('langToggle')}
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={onOpenSaves}
+              title="Sauvegardes de préparation"
+            >
+              <Bookmark className="h-4 w-4" />
             </Button>
             <Button
               variant="outline"

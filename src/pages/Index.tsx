@@ -1,4 +1,6 @@
 import { useState, useCallback, useRef } from 'react'
+import { useSavedPreps, type PrepSnapshot } from '@/hooks/useSavedPreps'
+import { SavePrepDialog } from '@/components/SavePrepDialog'
 import { jsPDF } from 'jspdf'
 import type { TripPlanningData } from '@/components/DestinationPanel'
 import { renderRouteMap } from '@/lib/renderRouteMap'
@@ -24,6 +26,9 @@ import { getSunTimes, formatSunTime } from '@/lib/sunCalc'
 
 export default function Index() {
   const { t } = useLanguage()
+  const [savesOpen, setSavesOpen] = useState(false)
+  const { savedPreps, isLoading: prepsLoading, isSaving: prepsSaving, saveError, isOffline, savePrep, deletePrep } = useSavedPreps()
+
   const [pilotName, setPilotName] = useState('')
   const [flightDate, setFlightDate] = useState(
     new Date().toISOString().split('T')[0]
@@ -64,6 +69,21 @@ export default function Index() {
 
   const tripDataRef = useRef<TripPlanningData>({ from: undefined, waypoints: [], to: undefined })
   const [depAutoFill, setDepAutoFill] = useState<PerfAutoFill>({})
+
+  const handleLoadPrep = (prep: PrepSnapshot) => {
+    setPilotName(prep.pilotName)
+    setFlightDate(prep.flightDate)
+    setFlightType(prep.flightType)
+    setInstructorName(prep.instructorName)
+    selectAircraft(prep.selectedAircraft)
+    prep.massItems.forEach(item => updateMassItem(item.id, item.mass))
+    setFuelGallons(prep.fuelGallons)
+    setReserveMinutes(prep.reserveMinutes)
+    setTripDistance(prep.tripDistance)
+    setRouteFrom(prep.routeFrom)
+    setRouteTo(prep.routeTo)
+    setDepAutoFill({ altitude: prep.altitude, qnh: prep.qnh, oat: prep.oat })
+  }
   const handleTripDataChange = useCallback((data: TripPlanningData) => {
     tripDataRef.current = data
     const from = data.from
@@ -498,7 +518,35 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header onPrint={generateBriefingPdf} />
+      <Header onPrint={generateBriefingPdf} onOpenSaves={() => setSavesOpen(true)} />
+      <SavePrepDialog
+        open={savesOpen}
+        onOpenChange={setSavesOpen}
+        savedPreps={savedPreps}
+        onSave={savePrep}
+        onLoad={handleLoadPrep}
+        onDelete={deletePrep}
+        isLoading={prepsLoading}
+        isSaving={prepsSaving}
+        saveError={saveError}
+        isOffline={isOffline}
+        currentSnapshot={{
+          pilotName,
+          flightDate,
+          flightType,
+          instructorName,
+          selectedAircraft,
+          routeFrom,
+          routeTo,
+          tripDistance,
+          massItems,
+          fuelGallons,
+          reserveMinutes,
+          altitude: perfDataRef.current.altitude,
+          qnh: perfDataRef.current.qnh,
+          oat: perfDataRef.current.oat,
+        }}
+      />
 
       <main className="container mx-auto px-3 sm:px-4 py-4 sm:py-6">
         {/* Desktop: 3-column layout */}

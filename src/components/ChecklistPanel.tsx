@@ -97,18 +97,20 @@ export function ChecklistPanel({ selectedAircraft = 'ZS-DIT' }: ChecklistPanelPr
               className="border rounded-lg overflow-hidden"
             >
               <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-muted/50">
-                <div className="flex items-center justify-between w-full pr-4">
-                  <div className="flex items-center gap-2">
-                    {isComplete ? (
-                      <CheckCircle className="h-4 w-4 text-aviation-green" />
-                    ) : (
-                      <Circle className="h-4 w-4 text-muted-foreground" />
-                    )}
-                    <span className={`font-medium ${isComplete ? 'text-aviation-green' : ''}`}>
+                <div className="flex items-center justify-between w-full pr-2 min-w-0 gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="shrink-0">
+                      {isComplete ? (
+                        <CheckCircle className="h-4 w-4 text-aviation-green" />
+                      ) : (
+                        <Circle className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </span>
+                    <span className={`font-medium truncate ${isComplete ? 'text-aviation-green' : ''}`}>
                       {lang === 'fr' ? (CHECKLIST_SECTION_TITLES_FR[section.id] ?? section.title) : section.title}
                     </span>
                   </div>
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-muted-foreground shrink-0">
                     {progress.checked}/{progress.total}
                   </span>
                 </div>
@@ -167,7 +169,7 @@ function ChecklistItemRow({ item, isChecked, onToggle, lang }: ChecklistItemRowP
           : 'hover:bg-muted/50'
       }`}
     >
-      <div className="mt-0.5">
+      <div className="mt-0.5 shrink-0">
         {isChecked ? (
           <CheckCircle className="h-4 w-4 text-aviation-green" />
         ) : (
@@ -175,7 +177,7 @@ function ChecklistItemRow({ item, isChecked, onToggle, lang }: ChecklistItemRowP
         )}
       </div>
       <div className="flex-1 min-w-0">
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 [&>:last-child]:ml-auto">
           <span
             className={`text-sm ${
               isChecked
@@ -188,7 +190,7 @@ function ChecklistItemRow({ item, isChecked, onToggle, lang }: ChecklistItemRowP
             {displayText}
           </span>
           <span
-            className={`text-sm font-mono shrink-0 ${
+            className={`text-sm font-mono text-right ${
               isChecked ? 'text-aviation-green' : 'text-muted-foreground'
             }`}
           >
