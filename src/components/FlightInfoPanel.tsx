@@ -38,23 +38,46 @@ export function FlightInfoPanel({
 }: FlightInfoPanelProps) {
   const { t } = useLanguage()
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
-  const [geoStatus, setGeoStatus] = useState<'pending' | 'ok' | 'denied'>('pending')
+  const [geoStatus, setGeoStatus] = useState<'pending' | 'ok' | 'denied' | 'error'>('pending')
 
-  useEffect(() => {
+  const requestGPS = () => {
     if (!navigator.geolocation) {
       setGeoStatus('denied')
       return
     }
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const c = { lat: pos.coords.latitude, lng: pos.coords.longitude }
-        setCoords(c)
-        setGeoStatus('ok')
-        onCoordsChange?.(c)
-      },
-      () => setGeoStatus('denied'),
-      { timeout: 10000 }
-    )
+    setGeoStatus('pending')
+
+    const onSuccess = (pos: GeolocationPosition) => {
+      const c = { lat: pos.coords.latitude, lng: pos.coords.longitude }
+      setCoords(c)
+      setGeoStatus('ok')
+      onCoordsChange?.(c)
+    }
+
+    const onError = (err: GeolocationPositionError) => {
+      if (err.code === 1) {
+        // Permission refusée — inutile de réessayer en mode réseau
+        setGeoStatus('denied')
+        return
+      }
+      // GPS hardware indisponible ou timeout → fallback réseau/WiFi
+      navigator.geolocation.getCurrentPosition(
+        onSuccess,
+        (err2) => setGeoStatus(err2.code === 1 ? 'denied' : 'error'),
+        { timeout: 15000, maximumAge: 60000, enableHighAccuracy: false }
+      )
+    }
+
+    // Essai 1 : GPS hardware (fonctionne sans réseau)
+    navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+      timeout: 10000,
+      maximumAge: 60000,
+      enableHighAccuracy: true,
+    })
+  }
+
+  useEffect(() => {
+    requestGPS()
   }, [])
 
   const sunTimes = (() => {
@@ -76,15 +99,17 @@ export function FlightInfoPanel({
             <Loader2 className="h-3.5 w-3.5 text-muted-foreground animate-spin" />
           )}
           {geoStatus === 'ok' && (
-            <MapPin className="h-3.5 w-3.5 text-green-500" aria-label={t('gps')} />
+            <MapPin className="h-3.5 w-3.5 text-green-500" />
           )}
-          {geoStatus === 'denied' && (
-            <MapPinOff className="h-3.5 w-3.5 text-muted-foreground" aria-label={t('defaultLabel')} />
+          {(geoStatus === 'denied' || geoStatus === 'error') && (
+            <button onClick={requestGPS} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors" title="Réessayer la géolocalisation">
+              <MapPinOff className="h-3.5 w-3.5" />
+              <span>Retry</span>
+            </button>
           )}
-          <span className="text-xs text-muted-foreground">
-            {geoStatus === 'ok' && t('gps')}
-            {geoStatus === 'denied' && t('defaultLabel')}
-          </span>
+          {geoStatus === 'ok' && (
+            <span className="text-xs text-muted-foreground">{t('gps')}</span>
+          )}
         </div>
       </div>
 
@@ -199,11 +224,14 @@ export function FlightInfoPanel({
               </div>
             </div>
           </div>
-        ) : flightDate && geoStatus === 'denied' && (
-          <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border/50 text-xs text-muted-foreground">
+        ) : flightDate && (geoStatus === 'denied' || geoStatus === 'error') && (
+          <button
+            onClick={requestGPS}
+            className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 border border-border/50 text-xs text-muted-foreground hover:bg-muted transition-colors w-full text-left"
+          >
             <MapPinOff className="h-3.5 w-3.5 shrink-0" />
-            {t('enableGPS')}
-          </div>
+            {geoStatus === 'denied' ? t('enableGPS') : 'GPS indisponible — cliquer pour réessayer'}
+          </button>
         )}
       </div>
     </div>
